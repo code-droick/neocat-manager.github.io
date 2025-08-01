@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión Litúrgica</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Gestión de Grupos Litúrgicos</h1>
+    <nav>
+      <ul>
+        <li><a href="#miembros">Miembros</a></li>
+        <li><a href="#grupos">Grupos</a></li>
+        <li><a href="#preparacion">Preparación Litúrgica</a></li>
+        <li><a href="#celebraciones">Celebraciones</a></li>
+        <li><a href="#calendario">Calendario</a></li>
+        <li><a href="#estadisticas">Estadísticas</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Sección Miembros -->
+    <section id="miembros">
+      <h2>Miembros</h2>
+      <button onclick="mostrarFormularioHermano()">Agregar Hermano/a</button>
+      <form id="form-hermano" class="hidden">
+        <input type="text" placeholder="Nombre" required>
+        <input type="text" placeholder="Apellido" required>
+        <select required>
+          <option value="">Sexo</option>
+          <option value="F">Femenino</option>
+          <option value="M">Masculino</option>
+        </select>
+        <input type="date" placeholder="Fecha de nacimiento" required>
+        <select required>
+          <option value="">Rol</option>
+          <option value="responsable">Responsable</option>
+          <option value="co-responsable">Co-Responsable</option>
+          <option value="hermano">Hermano/a</option>
+        </select>
+        <button type="submit">Guardar</button>
+      </form>
+      <div id="lista-hermanos" class="lista-items"></div>
+    </section>
+
+    <!-- Sección Grupos -->
+    <section id="grupos">
+      <h2>Grupos</h2>
+      <button onclick="mostrarFormularioGrupo()">Agregar Grupo</button>
+      <form id="form-grupo" class="hidden">
+        <input type="text" placeholder="Nombre del grupo" required>
+        <select required>
+          <option value="">Tipo de grupo</option>
+          <option value="preparacion">Preparación</option>
+          <option value="celebracion">Celebración</option>
+        </select>
+        <div id="miembros-disponibles" class="lista-checkbox"></div>
+        <button type="submit">Crear Grupo</button>
+      </form>
+      <div id="lista-grupos" class="lista-items"></div>
+    </section>
+
+    <!-- Sección Preparación Litúrgica -->
+    <section id="preparacion">
+      <h2>Preparación Litúrgica</h2>
+      <button onclick="mostrarFormularioPreparacion()">Agregar Preparación</button>
+      <form id="form-preparacion" class="hidden">
+        <input type="date" required>
+        <select id="tipo-preparacion" required>
+          <option value="">Tipo de preparación</option>
+          <option value="eucaristia">Eucaristía</option>
+          <option value="convivencia">Convivencia</option>
+          <option value="tema">Tema</option>
+          <option value="palabra">Palabra</option>
+        </select>
+        <div id="campos-dinamicos"></div>
+        <select id="select-grupo" required>
+          <option value="">Seleccionar grupo</option>
+        </select>
+        <button type="submit">Programar</button>
+      </form>
+      <div id="lista-preparaciones" class="lista-items"></div>
+    </section>
+
+    <!-- Sección Celebraciones -->
+    <section id="celebraciones">
+      <h2>Celebraciones Litúrgicas</h2>
+      <button onclick="mostrarFormularioCelebracion()">Agregar Celebración</button>
+      <form id="form-celebracion" class="hidden">
+        <select id="select-preparacion" required>
+          <option value="">Seleccionar preparación</option>
+        </select>
+        <div id="detalles-celebracion"></div>
+        <div id="asistentes-celebracion" class="lista-checkbox"></div>
+        <button type="submit">Registrar</button>
+      </form>
+      <div id="lista-celebraciones" class="lista-items"></div>
+    </section>
+
+    <!-- Sección Calendario -->
+    <section id="calendario">
+      <h2>Calendario de Eventos</h2>
+      <div id="calendario-mes"></div>
+      <div id="eventos-calendario"></div>
+    </section>
+
+    <!-- Sección Estadísticas -->
+    <section id="estadisticas">
+      <h2>Estadísticas</h2>
+      <div id="filtros-estadisticas">
+        <select id="tipo-estadistica">
+          <option value="asistencia-celebraciones">Asistencia a celebraciones</option>
+          <option value="asistencia-eucaristias">Asistencia a eucaristías</option>
+          <option value="miembro">Por miembro</option>
+        </select>
+      </div>
+      <div id="estadisticas-resultados" class="graficos"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Gestión Litúrgica</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
