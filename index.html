@@ -1,248 +1,215 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-50">
+<html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NeoCat Manager - Gestión Litúrgica</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor Comunitaria</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons (Iconos vectoriales limpios) -->
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+    }
+  </style>
 </head>
-<body class="h-full flex text-slate-800 antialiased">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex">
 
-  <!-- SIDEBAR NAVEGACIÓN -->
-  <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0">
-    <div class="p-6 border-b border-slate-800 flex items-center gap-3">
-      <div class="p-2 bg-indigo-600 rounded-lg text-white">
-        <i data-lucide="church" class="w-6 h-6"></i>
+  <!-- SIDEBAR -->
+  <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 hidden md:flex">
+    <div>
+      <div class="p-5 border-b border-slate-800 flex items-center gap-3">
+        <div class="p-2 bg-indigo-600 text-white rounded-lg">
+          <i data-lucide="users" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-white text-sm">Comunidad</h1>
+          <p class="text-xs text-slate-400">Gestión Litúrgica</p>
+        </div>
       </div>
-      <div>
-        <h1 class="font-bold text-white text-lg leading-tight">NeoCat</h1>
-        <p class="text-xs text-slate-400">Manager Litúrgico</p>
-      </div>
+      <nav class="p-4 space-y-1 text-sm font-medium">
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 bg-indigo-600/10 text-indigo-400 rounded-lg">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Panel Principal
+        </a>
+      </nav>
     </div>
 
-    <nav class="flex-1 p-4 space-y-1">
-      <a href="#miembros" class="nav-link active flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-        <i data-lucide="users" class="w-5 h-5"></i> Miembros
-      </a>
-      <a href="#grupos" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-        <i data-lucide="folder-kanban" class="w-5 h-5"></i> Equipos
-      </a>
-      <a href="#preparacion" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-        <i data-lucide="book-open" class="w-5 h-5"></i> Preparaciones
-      </a>
-      <a href="#celebraciones" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-        <i data-lucide="sparkles" class="w-5 h-5"></i> Celebraciones
-      </a>
-      <a href="#calendario" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-        <i data-lucide="calendar" class="w-5 h-5"></i> Calendario
-      </a>
-      <a href="#estadisticas" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-        <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Métricas
-      </a>
-    </nav>
-
-    <div class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">
-      Comunidad Neocatecumenal &copy; 2026
+    <!-- BOTONES RESPALDO JSON -->
+    <div class="p-4 border-t border-slate-800 space-y-2">
+      <p class="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1">Base de Datos</p>
+      <button onclick="StorageService.exportJSON()" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition border border-slate-700/50">
+        <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i> Exportar (.json)
+      </button>
+      <label class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 px-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer transition border border-slate-700/50">
+        <i data-lucide="upload" class="w-4 h-4 text-indigo-400"></i> Cargar (.json)
+        <input type="file" id="input-import-json" accept=".json" class="hidden" onchange="StorageService.importJSON(event)">
+      </label>
     </div>
   </aside>
 
   <!-- CONTENIDO PRINCIPAL -->
-  <main class="flex-1 overflow-y-auto p-8">
+  <main class="flex-1 p-6 max-w-6xl mx-auto space-y-6">
 
-    <!-- SECCIÓN MIEMBROS -->
-    <section id="sec-miembros" class="app-section">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-2xl font-bold text-slate-900">Miembros de la Comunidad</h2>
-          <p class="text-slate-500 text-sm">Registro de hermanos y asignación de roles.</p>
-        </div>
-        <button onclick="UI.openModal('modal-hermano')" class="btn-primary">
-          <i data-lucide="user-plus" class="w-4 h-4"></i> Agregar Hermano/a
+    <!-- BARRA SUPERIOR DE ACCIONES -->
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-xl shadow-sm border border-slate-200/80">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900">Comunidad Litúrgica</h2>
+        <p class="text-xs text-slate-500">Administra los hermanos y la asignación de equipos de servicio.</p>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <button onclick="UI.openModalHermanos()" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition shadow-sm">
+          <i data-lucide="user-plus" class="w-4 h-4"></i> Gestionar Hermanos
+        </button>
+        <button onclick="UI.openModalGrupo()" class="flex-1 sm:flex-none bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition shadow-sm">
+          <i data-lucide="users-round" class="w-4 h-4"></i> Crear Equipo
         </button>
       </div>
+    </header>
 
-      <div id="lista-hermanos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-    </section>
-
-    <!-- SECCIÓN GRUPOS -->
-    <section id="sec-grupos" class="app-section hidden">
-      <div class="flex justify-between items-center mb-6">
+    <!-- RESUMEN DE ESTADÍSTICAS -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+          <i data-lucide="user-check" class="w-6 h-6"></i>
+        </div>
         <div>
-          <h2 class="text-2xl font-bold text-slate-900">Equipos de Preparación</h2>
-          <p class="text-slate-500 text-sm">Grupos rotativos para preparar la liturgia.</p>
+          <p class="text-xs font-medium text-slate-500">Total Hermanos</p>
+          <p id="stat-total-hermanos" class="text-2xl font-bold text-slate-900">0</p>
         </div>
-        <button onclick="UI.openModalGrupo()" class="btn-primary">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i> Crear Equipo
-        </button>
       </div>
-
-      <div id="lista-grupos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-    </section>
-
-    <!-- SECCIÓN PREPARACIONES -->
-    <section id="sec-preparacion" class="app-section hidden">
-      <div class="flex justify-between items-center mb-6">
+      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+          <i data-lucide="shield-check" class="w-6 h-6"></i>
+        </div>
         <div>
-          <h2 class="text-2xl font-bold text-slate-900">Preparaciones Litúrgicas</h2>
-          <p class="text-slate-500 text-sm">Planificación de Eucaristías, Palabras y Convivencias.</p>
+          <p class="text-xs font-medium text-slate-500">Asignados a Equipo</p>
+          <p id="stat-asignados" class="text-2xl font-bold text-slate-900">0</p>
         </div>
-        <button onclick="UI.openModalPreparacion()" class="btn-primary">
-          <i data-lucide="calendar-plus" class="w-4 h-4"></i> Programar Preparación
-        </button>
       </div>
-
-      <div id="lista-preparaciones" class="space-y-3"></div>
-    </section>
-
-    <!-- SECCIÓN CELEBRACIONES -->
-    <section id="sec-celebraciones" class="app-section hidden">
-      <div class="flex justify-between items-center mb-6">
+      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+        <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
+          <i data-lucide="user-x" class="w-6 h-6"></i>
+        </div>
         <div>
-          <h2 class="text-2xl font-bold text-slate-900">Celebraciones y Asistencia</h2>
-          <p class="text-slate-500 text-sm">Registro de asistencias post-celebración.</p>
+          <p class="text-xs font-medium text-slate-500">Sin Equipo</p>
+          <p id="stat-disponibles" class="text-2xl font-bold text-slate-900">0</p>
         </div>
-        <button onclick="UI.openModalCelebracion()" class="btn-primary">
-          <i data-lucide="check-square" class="w-4 h-4"></i> Registrar Asistencia
-        </button>
-      </div>
-
-      <div id="lista-celebraciones" class="space-y-4"></div>
-    </section>
-
-    <!-- SECCIÓN CALENDARIO -->
-    <section id="sec-calendario" class="app-section hidden">
-      <h2 class="text-2xl font-bold text-slate-900 mb-6">Calendario Litúrgico y Cumpleaños</h2>
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <div id="calendario-eventos" class="space-y-3"></div>
       </div>
     </section>
 
-    <!-- SECCIÓN ESTADÍSTICAS -->
-    <section id="sec-estadisticas" class="app-section hidden">
-      <h2 class="text-2xl font-bold text-slate-900 mb-6">Métricas de Asistencia</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <p class="text-slate-500 text-sm font-medium">Promedio General</p>
-          <p id="stat-promedio-global" class="text-3xl font-bold text-indigo-600 mt-2">0</p>
-          <p class="text-xs text-slate-400 mt-1">Hermanos / celebración</p>
-        </div>
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <p class="text-slate-500 text-sm font-medium">Asistencia Eucaristías</p>
-          <p id="stat-promedio-eucarias" class="text-3xl font-bold text-emerald-600 mt-2">0</p>
-          <p class="text-xs text-slate-400 mt-1">Hermanos / Eucaristía</p>
-        </div>
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <p class="text-slate-500 text-sm font-medium">Total Celebraciones</p>
-          <p id="stat-total-celebraciones" class="text-3xl font-bold text-slate-800 mt-2">0</p>
-          <p class="text-xs text-slate-400 mt-1">Registradas hasta hoy</p>
-        </div>
-      </div>
-
-      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        <h3 class="font-bold text-slate-800 mb-4">Consulta Individual de Hermano</h3>
-        <select id="select-stat-hermano" class="input-field max-w-xs mb-4">
-          <option value="">Seleccionar hermano/a...</option>
-        </select>
-        <div id="resultado-stat-hermano" class="text-slate-600 font-medium"></div>
-      </div>
+    <!-- TARJETAS DE EQUIPOS -->
+    <section>
+      <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">Equipos Configurados</h3>
+      <div id="grid-grupos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
   </main>
 
-  <!-- CONTENEDOR MODALES -->
-  <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-40 flex items-center justify-center p-4">
+  <!-- ==================== MODALES ==================== -->
+
+  <!-- MODAL CONTENEDOR GENERAL -->
+  <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
     
-    <!-- Modal Hermano -->
-    <div id="modal-hermano" class="modal-card hidden">
-      <h3 class="text-lg font-bold text-slate-900 mb-4">Agregar Hermano/a</h3>
-      <form id="form-hermano" class="space-y-4">
-        <div class="grid grid-cols-2 gap-3">
-          <input type="text" id="nombre-hermano" placeholder="Nombre" class="input-field" required>
-          <input type="text" id="apellido-hermano" placeholder="Apellido" class="input-field" required>
+    <!-- 1. MODAL REDISEÑADO: GESTIONAR Y AGREGAR HERMANOS -->
+    <div id="modal-hermanos" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden hidden flex-col max-h-[90vh]">
+      <!-- Encabezado -->
+      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+          <div class="p-1.5 bg-indigo-500/20 rounded-lg text-indigo-400">
+            <i data-lucide="user-plus" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-base font-bold">Gestión de Hermanos</h3>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <select id="sexo-hermano" class="input-field" required>
-            <option value="">Sexo...</option>
-            <option value="F">Femenino</option>
-            <option value="M">Masculino</option>
-          </select>
-          <input type="date" id="nacimiento-hermano" class="input-field" required>
+        <button onclick="UI.closeModals()" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6">
+        <!-- FORMULARIO DE REGISTRO -->
+        <form id="form-hermano" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+          <p class="text-xs font-bold text-slate-700 uppercase tracking-wide">Registrar Nuevo Hermano</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input type="text" id="nombre-hermano" placeholder="Nombre (ej. Juan)" required class="w-full text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="apellido-hermano" placeholder="Apellido (ej. Pérez)" required class="w-full text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i> Guardar Hermano
+          </button>
+        </form>
+
+        <!-- LISTA Y BÚSQUEDA DE HERMANOS -->
+        <div class="space-y-3">
+          <div class="flex justify-between items-center gap-2">
+            <p class="text-xs font-bold text-slate-700 uppercase tracking-wide">Lista de Hermanos (<span id="cnt-lista-hermanos">0</span>)</p>
+            <div class="relative w-48 sm:w-64">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+              <input type="text" id="search-hermano" placeholder="Buscar hermano..." oninput="UI.filterHermanos(this.value)" class="w-full text-xs pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <div id="lista-hermanos-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
         </div>
-        <select id="rol-hermano" class="input-field" required>
-          <option value="">Rol en la comunidad...</option>
-          <option value="responsable">Responsable</option>
-          <option value="co-responsable">Co-Responsable</option>
-          <option value="hermano">Hermano/a</option>
-        </select>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="UI.closeModals()" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Guardar</button>
-        </div>
-      </form>
+      </div>
     </div>
 
-    <!-- Modal Grupo -->
-    <div id="modal-grupo" class="modal-card hidden">
-      <h3 class="text-lg font-bold text-slate-900 mb-4">Crear Equipo</h3>
-      <form id="form-grupo" class="space-y-4">
-        <input type="text" id="nombre-grupo" placeholder="Ej: Equipo 1" class="input-field" required>
-        <select id="tipo-grupo" class="input-field" required>
-          <option value="">Tipo de equipo...</option>
-          <option value="preparacion">Preparación Litúrgica</option>
-          <option value="limpieza">Limpieza / Logística</option>
-        </select>
+    <!-- 2. MODAL: CREAR EQUIPO (MANUAL / ALEATORIO) -->
+    <div id="modal-grupo" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden hidden flex-col max-h-[90vh]">
+      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+        <h3 class="text-base font-bold">Crear Nuevo Equipo</h3>
+        <button onclick="UI.closeModals()" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-grupo" class="p-6 space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-2">INTEGRANTES DEL EQUIPO:</label>
-          <div id="miembros-checkboxes" class="max-h-40 overflow-y-auto space-y-1 p-2 bg-slate-50 rounded-lg border border-slate-200"></div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Equipo</label>
+          <input type="text" id="nombre-grupo" placeholder="Ej: Equipo Litúrgico 1" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="UI.closeModals()" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Crear Equipo</button>
-        </div>
-      </form>
-    </div>
 
-    <!-- Modal Preparación -->
-    <div id="modal-preparacion" class="modal-card hidden">
-      <h3 class="text-lg font-bold text-slate-900 mb-4">Programar Preparación</h3>
-      <form id="form-preparacion" class="space-y-4">
-        <div class="grid grid-cols-2 gap-3">
-          <input type="date" id="fecha-preparacion" class="input-field" required>
-          <select id="tipo-preparacion" class="input-field" required>
-            <option value="">Tipo...</option>
-            <option value="eucaristia">Eucaristía</option>
-            <option value="palabra">Palabra</option>
-            <option value="convivencia">Convivencia</option>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo de Servicio</label>
+          <select id="tipo-grupo" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">Seleccionar tipo...</option>
+            <option value="preparacion">Preparación Litúrgica</option>
+            <option value="limpieza">Limpieza / Logística</option>
           </select>
         </div>
-        <div id="campos-dinamicos-prep" class="space-y-3"></div>
-        <select id="select-grupo-prep" class="input-field" required>
-          <option value="">Seleccionar Equipo a Cargo...</option>
-        </select>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="UI.closeModals()" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Programar</button>
-        </div>
-      </form>
-    </div>
 
-    <!-- Modal Celebración -->
-    <div id="modal-celebracion" class="modal-card hidden">
-      <h3 class="text-lg font-bold text-slate-900 mb-4">Tomar Asistencia</h3>
-      <form id="form-celebracion" class="space-y-4">
-        <select id="select-preparacion-cel" class="input-field" required>
-          <option value="">Seleccionar evento preparado...</option>
-        </select>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-2">MARCAR HERMANOS PRESENTES:</label>
-          <div id="asistentes-checkboxes" class="max-h-48 overflow-y-auto grid grid-cols-2 gap-1 p-2 bg-slate-50 rounded-lg border border-slate-200"></div>
+        <!-- MODO DE SELECCIÓN DE MIEMBROS -->
+        <div class="border-t border-slate-200 pt-3">
+          <div class="flex justify-between items-center mb-3">
+            <label class="text-xs font-bold text-slate-700 uppercase">Integrantes</label>
+            <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+              <button type="button" id="tab-manual" onclick="UI.toggleModoEquipo('manual')" class="px-3 py-1 rounded-md bg-white shadow-sm text-indigo-600">Manual</button>
+              <button type="button" id="tab-auto" onclick="UI.toggleModoEquipo('auto')" class="px-3 py-1 rounded-md text-slate-600">Aleatorio</button>
+            </div>
+          </div>
+
+          <!-- SECCIÓN SELECCIÓN MANUAL -->
+          <div id="sec-equipo-manual">
+            <div id="miembros-checkboxes" class="max-h-44 overflow-y-auto space-y-1 p-2 bg-slate-50 rounded-lg border border-slate-200"></div>
+          </div>
+
+          <!-- SECCIÓN GENERACIÓN ALEATORIA -->
+          <div id="sec-equipo-auto" class="hidden space-y-3 bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
+            <p class="text-xs text-indigo-900 leading-relaxed">
+              El sistema seleccionará de forma <strong>completamente al azar</strong> entre los hermanos que no forman parte de ningún equipo actualmente.
+            </p>
+            <div class="flex items-center justify-between gap-4 pt-1">
+              <div class="text-xs text-slate-600">
+                Disponibles: <span id="cant-disponibles" class="font-bold text-indigo-600">0</span>
+              </div>
+              <input type="number" id="cant-aleatorios" min="1" placeholder="N° a seleccionar" class="w-36 text-sm bg-white border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
         </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="UI.closeModals()" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Guardar Registro</button>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="UI.closeModals()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
+          <button type="submit" class="px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition shadow-sm">Crear Equipo</button>
         </div>
       </form>
     </div>
