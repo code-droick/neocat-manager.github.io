@@ -17,7 +17,7 @@ const AppState = {
   }
 };
 
-// --- SERVICIO DE ARQUITECTURA / ALMACENAMIENTO ---
+// --- SERVICIO DE ALMACENAMIENTO ---
 class StorageService {
   static get(key, defaultValue = []) {
     try {
@@ -77,8 +77,9 @@ class StorageService {
   }
 }
 
-// --- INTERFAZ DE USUARIO (UI) ---
+// --- INTERFAZ DE USUARIO ---
 let modoCreacionEquipo = "manual";
+let activeTab = "dashboard";
 
 const UI = {
   renderAll() {
@@ -86,7 +87,33 @@ const UI = {
     this.renderGrupos();
     this.renderListaHermanos();
     this.renderCasas();
+    this.renderDashboardSummary();
     lucide.createIcons();
+  },
+
+  switchTab(tabId) {
+    activeTab = tabId;
+    document.querySelectorAll(".tab-view").forEach(v => v.classList.add("hidden"));
+    
+    // Quitar estilo activo de sidebar
+    document.querySelectorAll("nav button").forEach(btn => {
+      btn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-slate-400 hover:bg-slate-800";
+    });
+
+    const activeNav = document.getElementById(`nav-${tabId}`);
+    if (activeNav) {
+      activeNav.className = "w-full flex items-center gap-3 px-3 py-2.5 bg-indigo-600/10 text-indigo-400 rounded-lg font-bold";
+    }
+
+    const titleMap = {
+      dashboard: "Panel Principal",
+      equipos: "Equipos de la Comunidad",
+      casas: "Celebración por las Casas"
+    };
+    document.getElementById("tab-title").textContent = titleMap[tabId] || "Panel Principal";
+
+    document.getElementById(`view-${tabId}`).classList.remove("hidden");
+    this.renderAll();
   },
 
   renderStats() {
@@ -94,20 +121,56 @@ const UI = {
     const hombres = AppState.hermanos.filter(h => h.sexo === 'H').length;
     const mujeres = AppState.hermanos.filter(h => h.sexo === 'M').length;
     
-    // Contar matrimonios (parejas vinculadas únicas)
     const parejased = new Set();
     AppState.hermanos.forEach(h => {
       if (h.parejaId) parejased.add([h.id, h.parejaId].sort().join('-'));
     });
 
-    const asignadosIds = new Set(AppState.grupos.flatMap(g => g.miembros.map(m => m.id)));
-    const disponiblesCount = AppState.hermanos.filter(h => !asignadosIds.has(h.id)).length;
+    // Excluir el grupo de 'eucaristía' para el cálculo de disponibilidad
+    const asignadosOrdinarios = new Set(
+      AppState.grupos
+        .filter(g => g.tipo !== 'eucaristia')
+        .flatMap(g => g.miembros.map(m => m.id))
+    );
+    const disponiblesCount = AppState.hermanos.filter(h => !asignadosOrdinarios.has(h.id)).length;
 
     document.getElementById("stat-total").textContent = total;
     document.getElementById("stat-hombres").textContent = `${hombres} ♂`;
     document.getElementById("stat-mujeres").textContent = `${mujeres} ♀`;
     document.getElementById("stat-matrimonios").textContent = parejased.size;
     document.getElementById("stat-disponibles").textContent = disponiblesCount;
+  },
+
+  renderDashboardSummary() {
+    const sumEquipos = document.getElementById("dash-summary-equipos");
+    const sumCasas = document.getElementById("dash-summary-casas");
+
+    if (AppState.grupos.length === 0) {
+      sumEquipos.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center">No hay equipos creados.</p>`;
+    } else {
+      sumEquipos.innerHTML = AppState.grupos.slice(-3).map(g => `
+        <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg border border-slate-200/80">
+          <div>
+            <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded ${g.tipo === 'eucaristia' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-50 text-indigo-700'}">${g.tipo}</span>
+            <p class="text-xs font-bold text-slate-800 mt-1">${g.nombre}</p>
+          </div>
+          <span class="text-xs text-slate-500">${g.miembros.length} integrantes</span>
+        </div>
+      `).join("");
+    }
+
+    if (AppState.casas.length === 0) {
+      sumCasas.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center">No hay casas divididas actualmente.</p>`;
+    } else {
+      sumCasas.innerHTML = AppState.casas.map((c, i) => `
+        <div class="flex justify-between items-center p-2.5 bg-emerald-50/60 rounded-lg border border-emerald-100">
+          <div>
+            <p class="text-xs font-bold text-emerald-900">Casa N° ${i + 1} (Resp: ${c.responsable.nombre})</p>
+          </div>
+          <span class="text-xs font-bold text-emerald-700">${c.asistentes.length + 1} pers.</span>
+        </div>
+      `).join("");
+    }
   },
 
   renderListaHermanos(filterQuery = "") {
@@ -155,7 +218,6 @@ const UI = {
   eliminarHermano(id) {
     if (!confirm("¿Deseas eliminar este hermano?")) return;
 
-    // Desvincular de su cónyuge si tenía
     AppState.hermanos.forEach(h => {
       if (h.parejaId === id) h.parejaId = null;
     });
@@ -173,32 +235,48 @@ const UI = {
     const container = document.getElementById("grid-grupos");
 
     if (AppState.grupos.length === 0) {
-      container.innerHTML = `<div class="col-span-full text-center text-slate-400 py-8 border border-dashed rounded-xl">Sin equipos de preparación.</div>`;
+      container.innerHTML = `<div class="col-span-full text-center text-slate-400 py-8 border border-dashed rounded-xl">Sin equipos configurados.</div>`;
       return;
     }
 
-    container.innerHTML = AppState.grupos.map(g => `
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3">
-        <div class="flex justify-between items-start">
-          <div>
-            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">${g.tipo}</span>
-            <h4 class="font-bold text-slate-900 text-sm mt-1">${g.nombre}</h4>
-          </div>
-          <button onclick="UI.eliminarGrupo(${g.id})" class="text-slate-300 hover:text-rose-600"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
-        </div>
+    container.innerHTML = AppState.grupos.map(g => {
+      const isEucaristia = g.tipo === 'eucaristia';
+      const badgeStyle = isEucaristia 
+        ? 'bg-amber-100 text-amber-800 border-amber-200' 
+        : 'bg-indigo-50 text-indigo-700 border-indigo-100';
 
-        <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">Integrantes (${g.miembros.length})</p>
-          <div class="flex flex-wrap gap-1 mt-1">
-            ${g.miembros.map(m => `
-              <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
-                ${m.sexo === 'H' ? '♂' : '♀'} ${m.nombre} ${m.apellido}
+      return `
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3 relative">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${badgeStyle}">
+                ${isEucaristia ? '⛪ ' : ''}${g.tipo}
               </span>
-            `).join("")}
+              <h4 class="font-bold text-slate-900 text-sm mt-1">${g.nombre}</h4>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="UI.openModalEditarGrupo(${g.id})" class="text-slate-400 hover:text-indigo-600 p-1" title="Editar Equipo">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </button>
+              <button onclick="UI.eliminarGrupo(${g.id})" class="text-slate-300 hover:text-rose-600 p-1" title="Disolver Equipo">
+                <i data-lucide="x-circle" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-[11px] font-semibold text-slate-400 uppercase">Integrantes (${g.miembros.length})</p>
+            <div class="flex flex-wrap gap-1 mt-1">
+              ${g.miembros.map(m => `
+                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+                  ${m.sexo === 'H' ? '♂' : '♀'} ${m.nombre} ${m.apellido}
+                </span>
+              `).join("")}
+            </div>
           </div>
         </div>
-      </div>
-    `).join("");
+      `;
+    }).join("");
 
     lucide.createIcons();
   },
@@ -211,24 +289,22 @@ const UI = {
   },
 
   renderCasas() {
-    const sec = document.getElementById("sec-casas-resultado");
     const container = document.getElementById("grid-casas");
 
     if (AppState.casas.length === 0) {
-      sec.classList.add("hidden");
+      container.innerHTML = `<div class="col-span-full text-center text-slate-400 py-8 border border-dashed rounded-xl">No hay distribución de casas. Haz clic en "Dividir por Casas".</div>`;
       return;
     }
 
-    sec.classList.remove("hidden");
     container.innerHTML = AppState.casas.map((casa, idx) => `
       <div class="bg-emerald-50/50 border border-emerald-200 rounded-xl p-4 space-y-2">
         <div class="flex justify-between items-center">
           <h4 class="font-bold text-emerald-900 text-sm">Casa N° ${idx + 1}</h4>
-          <span class="text-[10px] bg-emerald-200 text-emerald-800 font-bold px-2 py-0.5 rounded-full">${casa.asistentes.length} Hermanos</span>
+          <span class="text-[10px] bg-emerald-200 text-emerald-800 font-bold px-2 py-0.5 rounded-full">${casa.asistentes.length + 1} Hermanos</span>
         </div>
         
         <div class="bg-white p-2 rounded-lg border border-emerald-100">
-          <p class="text-[10px] uppercase font-bold text-emerald-700">Responsable (Preparador):</p>
+          <p class="text-[10px] uppercase font-bold text-emerald-700">Responsable (Guía):</p>
           <p class="text-xs font-bold text-slate-800">${casa.responsable.sexo === 'H' ? '♂' : '♀'} ${casa.responsable.nombre} ${casa.responsable.apellido}</p>
         </div>
 
@@ -236,8 +312,8 @@ const UI = {
           <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Acompañan:</p>
           <div class="space-y-1 max-h-36 overflow-y-auto pr-1">
             ${casa.asistentes.map(a => `
-              <div class="text-xs bg-white/80 p-1.5 rounded border border-emerald-100 text-slate-700 flex justify-between">
-                <span>${a.sexo === 'H' ? '♂' : '♀'} ${a.nombre} ${a.apellido}</span>
+              <div class="text-xs bg-white/80 p-1.5 rounded border border-emerald-100 text-slate-700">
+                ${a.sexo === 'H' ? '♂' : '♀'} ${a.nombre} ${a.apellido}
               </div>
             `).join("")}
           </div>
@@ -252,7 +328,7 @@ const UI = {
     this.renderAll();
   },
 
-  // --- MODALES ---
+  // --- MODALES Y EDICIÓN ---
   openModal(modalId) {
     document.getElementById("modal-container").classList.remove("hidden");
     ["modal-hermanos", "modal-grupo", "modal-casas"].forEach(id => document.getElementById(id).classList.add("hidden"));
@@ -265,7 +341,6 @@ const UI = {
   },
 
   openModalHermanos() {
-    // Cargar select de parejas (solo solteros o no vinculados)
     const selectPareja = document.getElementById("pareja-hermano");
     selectPareja.innerHTML = '<option value="">Soltero / Sin registrar cónyuge</option>' + 
       AppState.hermanos.filter(h => !h.parejaId).map(h => `<option value="${h.id}">${h.nombre} ${h.apellido} (${h.sexo})</option>`).join("");
@@ -275,20 +350,44 @@ const UI = {
   },
 
   openModalGrupo() {
-    this.toggleModoEquipo("manual");
-    const container = document.getElementById("miembros-checkboxes");
+    document.getElementById("edit-grupo-id").value = "";
+    document.getElementById("modal-grupo-title").textContent = "Crear Equipo";
+    document.getElementById("btn-guardar-grupo").textContent = "Crear Equipo";
+    document.getElementById("sec-grupo-modos").classList.remove("hidden");
+    document.getElementById("nombre-grupo").value = "";
 
+    this.toggleModoEquipo("manual");
+    this.renderCheckboxesMiembros();
+    this.openModal("modal-grupo");
+  },
+
+  openModalEditarGrupo(grupoId) {
+    const grupo = AppState.grupos.find(g => g.id === grupoId);
+    if (!grupo) return;
+
+    document.getElementById("edit-grupo-id").value = grupo.id;
+    document.getElementById("modal-grupo-title").textContent = "Editar Equipo";
+    document.getElementById("btn-guardar-grupo").textContent = "Guardar Cambios";
+    
+    document.getElementById("nombre-grupo").value = grupo.nombre;
+    document.getElementById("tipo-grupo").value = grupo.tipo;
+
+    // Ocultar sección de auto/manual al editar (se modifica nombre y tipo)
+    document.getElementById("sec-grupo-modos").classList.add("hidden");
+
+    this.openModal("modal-grupo");
+  },
+
+  renderCheckboxesMiembros() {
+    const container = document.getElementById("miembros-checkboxes");
     container.innerHTML = AppState.hermanos.map(h => `
       <label class="flex items-center gap-2 p-1.5 hover:bg-slate-100 rounded text-xs cursor-pointer text-slate-700">
         <input type="checkbox" value="${h.id}" onchange="UI.handleCheckboxMatrimonio(this, ${h.id})" class="chk-miembro rounded text-indigo-600">
         <span>${h.sexo === 'H' ? '♂' : '♀'} ${h.nombre} ${h.apellido} ${h.parejaId ? '💍' : ''}</span>
       </label>
     `).join("") || '<p class="text-xs text-slate-400 p-2">Registra hermanos primero.</p>';
-
-    this.openModal("modal-grupo");
   },
 
-  // Si se selecciona un hermano en el checklist, marcar a su cónyuge automáticamente
   handleCheckboxMatrimonio(chk, hermanoId) {
     const hermano = AppState.hermanos.find(h => h.id === hermanoId);
     if (hermano && hermano.parejaId) {
@@ -330,8 +429,12 @@ const UI = {
       secAuto.classList.remove("hidden");
       secManual.classList.add("hidden");
 
-      const asignadosIds = new Set(AppState.grupos.flatMap(g => g.miembros.map(m => m.id)));
-      const disponibles = AppState.hermanos.filter(h => !asignadosIds.has(h.id));
+      const asignadosOrdinarios = new Set(
+        AppState.grupos
+          .filter(g => g.tipo !== 'eucaristia')
+          .flatMap(g => g.miembros.map(m => m.id))
+      );
+      const disponibles = AppState.hermanos.filter(h => !asignadosOrdinarios.has(h.id));
       document.getElementById("cant-disponibles").textContent = disponibles.length;
     }
   }
@@ -340,9 +443,9 @@ const UI = {
 // --- EVENT LISTENERS ---
 document.addEventListener("DOMContentLoaded", () => {
   AppState.init();
-  UI.renderAll();
+  UI.switchTab("dashboard");
 
-  // Guardar Hermano + Matrimonio
+  // Guardar Hermano
   document.getElementById("form-hermano").addEventListener("submit", (e) => {
     e.preventDefault();
     const nombre = document.getElementById("nombre-hermano").value.trim();
@@ -355,7 +458,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     AppState.hermanos.push(nuevoHermano);
 
-    // Si se le seleccionó cónyuge, vincularlo mutuamente
     if (parejaId) {
       const cónyuge = AppState.hermanos.find(h => h.id === parejaId);
       if (cónyuge) cónyuge.parejaId = nuevoId;
@@ -363,52 +465,111 @@ document.addEventListener("DOMContentLoaded", () => {
 
     AppState.save();
     UI.renderAll();
-    UI.openModalHermanos(); // Recargar el modal
+    UI.openModalHermanos();
   });
 
-  // Guardar Grupo (Respetando Matrimonios en la versión Aleatoria)
+  // Guardar o Editar Equipo
   document.getElementById("form-grupo").addEventListener("submit", (e) => {
     e.preventDefault();
-    let miembrosSeleccionados = [];
 
-    if (modoCreacionEquipo === "manual") {
-      const selectedIds = Array.from(e.target.querySelectorAll(".chk-miembro:checked")).map(cb => Number(cb.value));
-      miembrosSeleccionados = AppState.hermanos.filter(h => selectedIds.includes(h.id));
-    } else {
-      // Aleatorio
-      const asignadosIds = new Set(AppState.grupos.flatMap(g => g.miembros.map(m => m.id)));
-      let disponibles = AppState.hermanos.filter(h => !asignadosIds.has(h.id));
+    const editId = Number(document.getElementById("edit-grupo-id").value);
+    const nombre = document.getElementById("nombre-grupo").value.trim();
+    const tipo = document.getElementById("tipo-grupo").value;
 
-      const cantidad = Number(document.getElementById("cant-aleatorios").value);
-      disponibles = [...disponibles].sort(() => 0.5 - Math.random());
-
-      for (let h of disponibles) {
-        if (miembrosSeleccionados.some(m => m.id === h.id)) continue;
-
-        miembrosSeleccionados.push(h);
-        // Si está casado, agregar a su pareja aunque sobrepase levemente el número deseado
-        if (h.parejaId) {
-          const pareja = disponibles.find(p => p.id === h.parejaId);
-          if (pareja && !miembrosSeleccionados.some(m => m.id === pareja.id)) {
-            miembrosSeleccionados.push(pareja);
-          }
-        }
-
-        if (miembrosSeleccionados.length >= cantidad) break;
+    // MODO EDICIÓN
+    if (editId) {
+      const grupo = AppState.grupos.find(g => g.id === editId);
+      if (grupo) {
+        grupo.nombre = nombre;
+        grupo.tipo = tipo;
       }
-    }
-
-    if (miembrosSeleccionados.length === 0) {
-      alert("Selecciona al menos un integrante.");
+      AppState.save();
+      UI.renderAll();
+      UI.closeModals();
       return;
     }
 
-    AppState.grupos.push({
-      id: Date.now(),
-      nombre: document.getElementById("nombre-grupo").value.trim(),
-      tipo: document.getElementById("tipo-grupo").value,
-      miembros: miembrosSeleccionados
-    });
+    // MODO CREACIÓN
+    if (modoCreacionEquipo === "manual") {
+      const selectedIds = Array.from(e.target.querySelectorAll(".chk-miembro:checked")).map(cb => Number(cb.value));
+      const miembrosSeleccionados = AppState.hermanos.filter(h => selectedIds.includes(h.id));
+
+      if (miembrosSeleccionados.length === 0) {
+        alert("Selecciona al menos un integrante.");
+        return;
+      }
+
+      AppState.grupos.push({
+        id: Date.now(),
+        nombre,
+        tipo,
+        miembros: miembrosSeleccionados
+      });
+
+    } else {
+      // SORTEO ALEATORIO EQUITATIVO EN N EQUIPOS
+      const numEquipos = Number(document.getElementById("cant-equipos-auto").value);
+      if (numEquipos < 2) {
+        alert("Ingresa al menos 2 equipos para realizar el sorteo.");
+        return;
+      }
+
+      // Filtrar hermanos disponibles (ignorando asignaciones a Eucaristía)
+      const asignadosOrdinarios = new Set(
+        AppState.grupos
+          .filter(g => g.tipo !== 'eucaristia')
+          .flatMap(g => g.miembros.map(m => m.id))
+      );
+      let disponibles = AppState.hermanos.filter(h => !asignadosOrdinarios.has(h.id));
+
+      if (disponibles.length === 0) {
+        alert("No hay hermanos disponibles sin equipo.");
+        return;
+      }
+
+      // Agrupar hermanos en "unidades" (Matrimonios o Solteros)
+      const unidades = [];
+      const procesados = new Set();
+
+      disponibles.forEach(h => {
+        if (procesados.has(h.id)) return;
+
+        if (h.parejaId) {
+          const pareja = disponibles.find(p => p.id === h.parejaId);
+          if (pareja) {
+            unidades.push([h, pareja]);
+            procesados.add(h.id);
+            procesados.add(pareja.id);
+            return;
+          }
+        }
+
+        unidades.push([h]);
+        procesados.add(h.id);
+      });
+
+      // Mezclar unidades al azar (Fisher-Yates)
+      for (let i = unidades.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [unidades[i], unidades[j]] = [unidades[j], unidades[i]];
+      }
+
+      // Inicializar N equipos en memoria
+      const nuevosEquipos = Array.from({ length: numEquipos }, (_, i) => ({
+        id: Date.now() + i,
+        nombre: `${nombre} - Subgrupo ${i + 1}`,
+        tipo,
+        miembros: []
+      }));
+
+      // Repartir unidades equilibradamente según la cantidad actual de integrantes
+      unidades.forEach(unidad => {
+        nuevosEquipos.sort((a, b) => a.miembros.length - b.miembros.length);
+        nuevosEquipos[0].miembros.push(...unidad);
+      });
+
+      AppState.grupos.push(...nuevosEquipos);
+    }
 
     AppState.save();
     UI.renderAll();
@@ -424,22 +585,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!equipo) return;
 
-    // 1. Cada integrante del equipo preparador liderará una casa (esposos separados en distintas casas)
     const preparadores = equipo.miembros;
     const idsPreparadores = new Set(preparadores.map(p => p.id));
 
-    // 2. Resto de la comunidad celebrante
     let restoComunidad = AppState.hermanos.filter(h => !idsPreparadores.has(h.id));
-    // Mezclar la comunidad al azar
     restoComunidad = [...restoComunidad].sort(() => 0.5 - Math.random());
 
-    // 3. Crear las casas
     const casas = preparadores.map(p => ({
       responsable: p,
       asistentes: []
     }));
 
-    // 4. Distribuir el resto equitativamente
     restoComunidad.forEach((hermano, index) => {
       const casaIndex = index % casas.length;
       casas[casaIndex].asistentes.push(hermano);
@@ -449,5 +605,6 @@ document.addEventListener("DOMContentLoaded", () => {
     AppState.save();
     UI.renderAll();
     UI.closeModals();
+    UI.switchTab("casas");
   });
 });
