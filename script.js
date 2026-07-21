@@ -44,7 +44,7 @@ class StorageService {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(AppState, null, 2));
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `comunidad_backup_${new Date().toISOString().split("T")[0]}.json`);
+    downloadAnchor.setAttribute("download", `comunidad5_backup_${new Date().toISOString().split("T")[0]}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -64,7 +64,7 @@ class StorageService {
           AppState.casas = importedData.casas || [];
           AppState.save();
           UI.renderAll();
-          alert("¡Base de datos importada exitosamente!");
+          alert("¡Base de datos de COMUNIDAD #5 importada con éxito!");
         } else {
           alert("Formato JSON no válido.");
         }
@@ -88,6 +88,7 @@ const UI = {
     this.renderListaHermanos();
     this.renderCasas();
     this.renderDashboardSummary();
+    this.renderAnalytics();
     lucide.createIcons();
   },
 
@@ -95,7 +96,6 @@ const UI = {
     activeTab = tabId;
     document.querySelectorAll(".tab-view").forEach(v => v.classList.add("hidden"));
     
-    // Quitar estilo activo de sidebar
     document.querySelectorAll("nav button").forEach(btn => {
       btn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-slate-400 hover:bg-slate-800";
     });
@@ -108,7 +108,8 @@ const UI = {
     const titleMap = {
       dashboard: "Panel Principal",
       equipos: "Equipos de la Comunidad",
-      casas: "Celebración por las Casas"
+      casas: "Celebración por las Casas",
+      analytics: "Estadísticas & Insights"
     };
     document.getElementById("tab-title").textContent = titleMap[tabId] || "Panel Principal";
 
@@ -126,7 +127,6 @@ const UI = {
       if (h.parejaId) parejased.add([h.id, h.parejaId].sort().join('-'));
     });
 
-    // Excluir el grupo de 'eucaristía' para el cálculo de disponibilidad
     const asignadosOrdinarios = new Set(
       AppState.grupos
         .filter(g => g.tipo !== 'eucaristia')
@@ -148,15 +148,21 @@ const UI = {
     if (AppState.grupos.length === 0) {
       sumEquipos.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center">No hay equipos creados.</p>`;
     } else {
-      sumEquipos.innerHTML = AppState.grupos.slice(-3).map(g => `
-        <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg border border-slate-200/80">
-          <div>
-            <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded ${g.tipo === 'eucaristia' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-50 text-indigo-700'}">${g.tipo}</span>
-            <p class="text-xs font-bold text-slate-800 mt-1">${g.nombre}</p>
+      sumEquipos.innerHTML = AppState.grupos.slice(-3).map(g => {
+        const estadoLabel = g.estado === 'preparado' ? '🟢 Preparado' : g.estado === 'proceso' ? '🟡 En proceso' : '⚪ Pendiente';
+        return `
+          <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg border border-slate-200/80">
+            <div>
+              <div class="flex items-center gap-1">
+                <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded ${g.tipo === 'eucaristia' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-50 text-indigo-700'}">${g.tipo}</span>
+                <span class="text-[10px] text-slate-500 font-medium">${estadoLabel}</span>
+              </div>
+              <p class="text-xs font-bold text-slate-800 mt-1">${g.nombre}</p>
+            </div>
+            <span class="text-xs text-slate-500">${g.miembros.length} integrantes</span>
           </div>
-          <span class="text-xs text-slate-500">${g.miembros.length} integrantes</span>
-        </div>
-      `).join("");
+        `;
+      }).join("");
     }
 
     if (AppState.casas.length === 0) {
@@ -171,6 +177,169 @@ const UI = {
         </div>
       `).join("");
     }
+  },
+
+  renderGrupos() {
+    const container = document.getElementById("grid-grupos");
+
+    if (AppState.grupos.length === 0) {
+      container.innerHTML = `<div class="col-span-full text-center text-slate-400 py-8 border border-dashed rounded-xl">Sin equipos configurados.</div>`;
+      return;
+    }
+
+    container.innerHTML = AppState.grupos.map(g => {
+      const isEucaristia = g.tipo === 'eucaristia';
+      const badgeStyle = isEucaristia 
+        ? 'bg-amber-100 text-amber-800 border-amber-200' 
+        : 'bg-indigo-50 text-indigo-700 border-indigo-100';
+
+      const estadoBadge = g.estado === 'preparado' 
+        ? '<span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">🟢 Listo</span>'
+        : g.estado === 'proceso'
+        ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">🟡 En Prep.</span>'
+        : '<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">⚪ Pendiente</span>';
+
+      return `
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3 relative">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${badgeStyle}">${g.tipo}</span>
+                ${estadoBadge}
+              </div>
+              <h4 class="font-bold text-slate-900 text-sm mt-1.5">${g.nombre}</h4>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="UI.openModalEditarGrupo(${g.id})" class="text-slate-400 hover:text-indigo-600 p-1" title="Editar Equipo">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </button>
+              <button onclick="UI.eliminarGrupo(${g.id})" class="text-slate-300 hover:text-rose-600 p-1" title="Disolver Equipo">
+                <i data-lucide="x-circle" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- DETALLES LITÚRGICOS -->
+          ${(g.palabra || g.tema || g.personaje) ? `
+            <div class="bg-slate-50 p-2 rounded-lg text-xs space-y-0.5 border border-slate-100">
+              ${g.palabra ? `<p class="text-slate-600"><strong class="text-slate-800">📖 Palabra:</strong> ${g.palabra}</p>` : ''}
+              ${g.tema ? `<p class="text-slate-600"><strong class="text-slate-800">💡 Tema:</strong> ${g.tema}</p>` : ''}
+              ${g.personaje ? `<p class="text-slate-600"><strong class="text-slate-800">👤 Personaje:</strong> ${g.personaje}</p>` : ''}
+            </div>
+          ` : ''}
+
+          <div>
+            <p class="text-[11px] font-semibold text-slate-400 uppercase">Integrantes (${g.miembros.length})</p>
+            <div class="flex flex-wrap gap-1 mt-1">
+              ${g.miembros.map(m => `
+                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+                  ${m.sexo === 'H' ? '♂' : '♀'} ${m.nombre} ${m.apellido}
+                </span>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    lucide.createIcons();
+  },
+
+  renderAnalytics() {
+    const preparados = AppState.grupos.filter(g => g.estado === 'preparado').length;
+    const enProceso = AppState.grupos.filter(g => g.estado === 'proceso').length;
+    const pendientes = AppState.grupos.filter(g => g.estado === 'pendiente' || !g.estado).length;
+
+    document.getElementById("stat-prep-completadas").textContent = preparados;
+    document.getElementById("stat-prep-enproceso").textContent = enProceso;
+    document.getElementById("stat-prep-pendientes").textContent = pendientes;
+
+    // Conteo de participaciones por hermano
+    const contadorHermanos = {};
+    AppState.hermanos.forEach(h => contadorHermanos[h.id] = { ...h, cantidad: 0 });
+
+    // Conteo de dúos/parejas que salen juntos
+    const contadorDuos = {};
+
+    AppState.grupos.forEach(g => {
+      // Sumar participación
+      g.miembros.forEach(m => {
+        if (contadorHermanos[m.id]) {
+          contadorHermanos[m.id].cantidad += 1;
+        }
+      });
+
+      // Evaluar combinaciones en el equipo
+      const miembros = g.miembros;
+      for (let i = 0; i < miembros.length; i++) {
+        for (let j = i + 1; j < miembros.length; j++) {
+          const idA = miembros[i].id;
+          const idB = miembros[j].id;
+          const key = [idA, idB].sort((a, b) => a - b).join("-");
+
+          if (!contadorDuos[key]) {
+            contadorDuos[key] = {
+              h1: miembros[i],
+              h2: miembros[j],
+              veces: 0
+            };
+          }
+          contadorDuos[key].veces += 1;
+        }
+      }
+    });
+
+    // Ranking de Hermanos
+    const listaRanking = Object.values(contadorHermanos).sort((a, b) => b.cantidad - a.cantidad);
+    const topHermano = listaRanking[0];
+
+    document.getElementById("stat-top-hermano").textContent = topHermano && topHermano.cantidad > 0 
+      ? `${topHermano.nombre} (${topHermano.cantidad} prep.)` 
+      : 'Sin registro';
+
+    const rankingContainer = document.getElementById("analytics-ranking-hermanos");
+    if (listaRanking.length === 0) {
+      rankingContainer.innerHTML = `<p class="text-xs text-slate-400">Sin datos de participación.</p>`;
+    } else {
+      rankingContainer.innerHTML = listaRanking.map(h => `
+        <div class="flex justify-between items-center p-2 bg-slate-50 rounded-lg text-xs">
+          <span class="font-bold text-slate-800">${h.sexo === 'H' ? '♂' : '♀'} ${h.nombre} ${h.apellido}</span>
+          <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold">${h.cantidad} veces</span>
+        </div>
+      `).join("");
+    }
+
+    // Ranking de Dúos Frecuentes
+    const listaDuos = Object.values(contadorDuos).sort((a, b) => b.veces - a.veces).filter(d => d.veces > 1);
+    const duosContainer = document.getElementById("analytics-duos-frecuentes");
+
+    if (listaDuos.length === 0) {
+      duosContainer.innerHTML = `<p class="text-xs text-slate-400">Aún no hay hermanos coincidiendo más de 1 vez en grupos.</p>`;
+    } else {
+      duosContainer.innerHTML = listaDuos.map(d => `
+        <div class="flex justify-between items-center p-2 bg-indigo-50/50 border border-indigo-100 rounded-lg text-xs">
+          <span class="font-medium text-slate-800">${d.h1.nombre} & ${d.h2.nombre}</span>
+          <span class="bg-indigo-600 text-white px-2 py-0.5 rounded font-bold">${d.veces} coincidencias</span>
+        </div>
+      `).join("");
+    }
+
+    // Histórico: Palabras, Temas y Personajes
+    const palabras = AppState.grupos.map(g => g.palabra).filter(Boolean);
+    const temas = AppState.grupos.map(g => g.tema).filter(Boolean);
+    const personajes = AppState.grupos.map(g => g.personaje).filter(Boolean);
+
+    document.getElementById("list-analytics-palabras").innerHTML = palabras.length 
+      ? palabras.map(p => `<li class="border-b border-slate-100 pb-0.5">• ${p}</li>`).join("")
+      : '<li class="text-slate-400">Ninguna palabra registrada</li>';
+
+    document.getElementById("list-analytics-temas").innerHTML = temas.length 
+      ? temas.map(t => `<li class="border-b border-slate-100 pb-0.5">• ${t}</li>`).join("")
+      : '<li class="text-slate-400">Ningún tema registrado</li>';
+
+    document.getElementById("list-analytics-personajes").innerHTML = personajes.length 
+      ? personajes.map(p => `<li class="border-b border-slate-100 pb-0.5">• ${p}</li>`).join("")
+      : '<li class="text-slate-400">Ningún personaje registrado</li>';
   },
 
   renderListaHermanos(filterQuery = "") {
@@ -190,12 +359,10 @@ const UI = {
 
     container.innerHTML = filtered.map(h => {
       const cónyuge = AppState.hermanos.find(p => p.id === h.parejaId);
-      const sexoBadge = h.sexo === 'H' ? '<span class="text-blue-600 font-bold">♂</span>' : '<span class="text-pink-600 font-bold">♀</span>';
-
       return `
         <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200/60">
           <div class="flex items-center gap-2">
-            <span class="text-sm">${sexoBadge}</span>
+            <span class="text-sm font-bold ${h.sexo === 'H' ? 'text-blue-600' : 'text-pink-600'}">${h.sexo === 'H' ? '♂' : '♀'}</span>
             <div>
               <p class="text-xs font-bold text-slate-800">${h.nombre} ${h.apellido}</p>
               ${cónyuge ? `<p class="text-[10px] text-indigo-600">💍 Casado/a con ${cónyuge.nombre} ${cónyuge.apellido}</p>` : '<p class="text-[10px] text-slate-400">Soltero/a</p>'}
@@ -231,68 +398,11 @@ const UI = {
     this.renderAll();
   },
 
-  renderGrupos() {
-    const container = document.getElementById("grid-grupos");
-
-    if (AppState.grupos.length === 0) {
-      container.innerHTML = `<div class="col-span-full text-center text-slate-400 py-8 border border-dashed rounded-xl">Sin equipos configurados.</div>`;
-      return;
-    }
-
-    container.innerHTML = AppState.grupos.map(g => {
-      const isEucaristia = g.tipo === 'eucaristia';
-      const badgeStyle = isEucaristia 
-        ? 'bg-amber-100 text-amber-800 border-amber-200' 
-        : 'bg-indigo-50 text-indigo-700 border-indigo-100';
-
-      return `
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3 relative">
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${badgeStyle}">
-                ${isEucaristia ? '⛪ ' : ''}${g.tipo}
-              </span>
-              <h4 class="font-bold text-slate-900 text-sm mt-1">${g.nombre}</h4>
-            </div>
-            <div class="flex items-center gap-1">
-              <button onclick="UI.openModalEditarGrupo(${g.id})" class="text-slate-400 hover:text-indigo-600 p-1" title="Editar Equipo">
-                <i data-lucide="pencil" class="w-4 h-4"></i>
-              </button>
-              <button onclick="UI.eliminarGrupo(${g.id})" class="text-slate-300 hover:text-rose-600 p-1" title="Disolver Equipo">
-                <i data-lucide="x-circle" class="w-4 h-4"></i>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <p class="text-[11px] font-semibold text-slate-400 uppercase">Integrantes (${g.miembros.length})</p>
-            <div class="flex flex-wrap gap-1 mt-1">
-              ${g.miembros.map(m => `
-                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
-                  ${m.sexo === 'H' ? '♂' : '♀'} ${m.nombre} ${m.apellido}
-                </span>
-              `).join("")}
-            </div>
-          </div>
-        </div>
-      `;
-    }).join("");
-
-    lucide.createIcons();
-  },
-
-  eliminarGrupo(id) {
-    if (!confirm("¿Disolver este equipo?")) return;
-    AppState.grupos = AppState.grupos.filter(g => g.id !== id);
-    AppState.save();
-    this.renderAll();
-  },
-
   renderCasas() {
     const container = document.getElementById("grid-casas");
 
     if (AppState.casas.length === 0) {
-      container.innerHTML = `<div class="col-span-full text-center text-slate-400 py-8 border border-dashed rounded-xl">No hay distribución de casas. Haz clic en "Dividir por Casas".</div>`;
+      container.innerHTML = `<div class="col-span-full text-center text-slate-400 py-8 border border-dashed rounded-xl">No hay distribución de casas.</div>`;
       return;
     }
 
@@ -304,7 +414,7 @@ const UI = {
         </div>
         
         <div class="bg-white p-2 rounded-lg border border-emerald-100">
-          <p class="text-[10px] uppercase font-bold text-emerald-700">Responsable (Guía):</p>
+          <p class="text-[10px] uppercase font-bold text-emerald-700">Responsable:</p>
           <p class="text-xs font-bold text-slate-800">${casa.responsable.sexo === 'H' ? '♂' : '♀'} ${casa.responsable.nombre} ${casa.responsable.apellido}</p>
         </div>
 
@@ -328,7 +438,6 @@ const UI = {
     this.renderAll();
   },
 
-  // --- MODALES Y EDICIÓN ---
   openModal(modalId) {
     document.getElementById("modal-container").classList.remove("hidden");
     ["modal-hermanos", "modal-grupo", "modal-casas"].forEach(id => document.getElementById(id).classList.add("hidden"));
@@ -354,7 +463,12 @@ const UI = {
     document.getElementById("modal-grupo-title").textContent = "Crear Equipo";
     document.getElementById("btn-guardar-grupo").textContent = "Crear Equipo";
     document.getElementById("sec-grupo-modos").classList.remove("hidden");
+    
     document.getElementById("nombre-grupo").value = "";
+    document.getElementById("estado-grupo").value = "pendiente";
+    document.getElementById("palabra-grupo").value = "";
+    document.getElementById("tema-grupo").value = "";
+    document.getElementById("personaje-grupo").value = "";
 
     this.toggleModoEquipo("manual");
     this.renderCheckboxesMiembros();
@@ -371,8 +485,11 @@ const UI = {
     
     document.getElementById("nombre-grupo").value = grupo.nombre;
     document.getElementById("tipo-grupo").value = grupo.tipo;
+    document.getElementById("estado-grupo").value = grupo.estado || "pendiente";
+    document.getElementById("palabra-grupo").value = grupo.palabra || "";
+    document.getElementById("tema-grupo").value = grupo.tema || "";
+    document.getElementById("personaje-grupo").value = grupo.personaje || "";
 
-    // Ocultar sección de auto/manual al editar (se modifica nombre y tipo)
     document.getElementById("sec-grupo-modos").classList.add("hidden");
 
     this.openModal("modal-grupo");
@@ -475,6 +592,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const editId = Number(document.getElementById("edit-grupo-id").value);
     const nombre = document.getElementById("nombre-grupo").value.trim();
     const tipo = document.getElementById("tipo-grupo").value;
+    const estado = document.getElementById("estado-grupo").value;
+    const palabra = document.getElementById("palabra-grupo").value.trim();
+    const tema = document.getElementById("tema-grupo").value.trim();
+    const personaje = document.getElementById("personaje-grupo").value.trim();
 
     // MODO EDICIÓN
     if (editId) {
@@ -482,6 +603,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (grupo) {
         grupo.nombre = nombre;
         grupo.tipo = tipo;
+        grupo.estado = estado;
+        grupo.palabra = palabra;
+        grupo.tema = tema;
+        grupo.personaje = personaje;
       }
       AppState.save();
       UI.renderAll();
@@ -503,18 +628,21 @@ document.addEventListener("DOMContentLoaded", () => {
         id: Date.now(),
         nombre,
         tipo,
+        estado,
+        palabra,
+        tema,
+        personaje,
         miembros: miembrosSeleccionados
       });
 
     } else {
-      // SORTEO ALEATORIO EQUITATIVO EN N EQUIPOS
+      // SORTEO ALEATORIO EQUITATIVO
       const numEquipos = Number(document.getElementById("cant-equipos-auto").value);
       if (numEquipos < 2) {
         alert("Ingresa al menos 2 equipos para realizar el sorteo.");
         return;
       }
 
-      // Filtrar hermanos disponibles (ignorando asignaciones a Eucaristía)
       const asignadosOrdinarios = new Set(
         AppState.grupos
           .filter(g => g.tipo !== 'eucaristia')
@@ -527,7 +655,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Agrupar hermanos en "unidades" (Matrimonios o Solteros)
       const unidades = [];
       const procesados = new Set();
 
@@ -548,21 +675,22 @@ document.addEventListener("DOMContentLoaded", () => {
         procesados.add(h.id);
       });
 
-      // Mezclar unidades al azar (Fisher-Yates)
       for (let i = unidades.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [unidades[i], unidades[j]] = [unidades[j], unidades[i]];
       }
 
-      // Inicializar N equipos en memoria
       const nuevosEquipos = Array.from({ length: numEquipos }, (_, i) => ({
         id: Date.now() + i,
         nombre: `${nombre} - Subgrupo ${i + 1}`,
         tipo,
+        estado,
+        palabra,
+        tema,
+        personaje,
         miembros: []
       }));
 
-      // Repartir unidades equilibradamente según la cantidad actual de integrantes
       unidades.forEach(unidad => {
         nuevosEquipos.sort((a, b) => a.miembros.length - b.miembros.length);
         nuevosEquipos[0].miembros.push(...unidad);
