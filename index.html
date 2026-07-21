@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestor de Comunidad</title>
-  <!-- CDN de Tailwind CSS -->
+  <!-- CDN Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Iconos de FontAwesome -->
+  <!-- Iconos FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -21,7 +21,7 @@
         </div>
         <div>
           <h2 class="text-white font-bold tracking-wide text-base">Comunidad</h2>
-          <p class="text-xs text-slate-400">Gestor Integral</p>
+          <p class="text-xs text-slate-400">Sistema Modular</p>
         </div>
       </div>
 
@@ -30,31 +30,31 @@
           <li>
             <a href="#" id="link-comunidad" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium transition-all bg-indigo-600 text-white shadow-md" onclick="cambiarPestana('comunidad', event)">
               <i class="fa-solid fa-users text-base w-5 text-center"></i>
-              <span>Miembros</span>
+              <span>1. Integrantes</span>
             </a>
           </li>
           <li>
             <a href="#" id="link-grupos" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white" onclick="cambiarPestana('grupos', event)">
               <i class="fa-solid fa-layer-group text-base w-5 text-center"></i>
-              <span>Gestión de Grupos</span>
+              <span>2. Grupos de Trabajo</span>
             </a>
           </li>
           <li>
             <a href="#" id="link-preparacion" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white" onclick="cambiarPestana('preparacion', event)">
-              <i class="fa-solid fa-plus-circle text-base w-5 text-center"></i>
-              <span>Nueva Preparación</span>
+              <i class="fa-solid fa-book-open text-base w-5 text-center"></i>
+              <span>3. Asignar Preparación</span>
             </a>
           </li>
           <li>
             <a href="#" id="link-historial" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white" onclick="cambiarPestana('historial', event)">
               <i class="fa-solid fa-clock-rotate-left text-base w-5 text-center"></i>
-              <span>Historial</span>
+              <span>4. Historial</span>
             </a>
           </li>
           <li>
             <a href="#" id="link-estadisticas" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white" onclick="cambiarPestana('estadisticas', event)">
               <i class="fa-solid fa-chart-pie text-base w-5 text-center"></i>
-              <span>Insights & Métricas</span>
+              <span>5. Insights & Métricas</span>
             </a>
           </li>
         </ul>
@@ -62,19 +62,19 @@
     </div>
 
     <div class="mt-8 pt-4 border-t border-slate-800 text-xs text-slate-500 text-center">
-      Sistema Comunitario © 2026
+      Gestor Comunitario © 2026
     </div>
   </aside>
 
   <!-- CONTENIDO PRINCIPAL -->
   <main class="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
 
-    <!-- 1. PESTAÑA: GESTIÓN DE LA COMUNIDAD (HERMANOS) -->
+    <!-- 1. PESTAÑA: INTEGRANTES -->
     <section id="comunidad" class="tab-content app-section">
       <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Integrantes de la Comunidad</h1>
-          <p class="text-slate-500 text-sm mt-0.5">Administra los hermanos, sus roles y estados de matrimonio.</p>
+          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">1. Padrón de Integrantes</h1>
+          <p class="text-slate-500 text-sm mt-0.5">Gestión de hermanos, roles y matrimonios. Base de datos primaria.</p>
         </div>
         <div class="flex gap-2">
           <button onclick="exportarJSON()" class="inline-flex items-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-xl transition">
@@ -88,7 +88,7 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Formulario Integrante -->
+        <!-- Formulario Hermano -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 h-fit">
           <h3 id="form-hermano-title" class="text-base font-bold text-slate-900 mb-4">Agregar Nuevo Hermano</h3>
           <form id="form-hermano" onsubmit="guardarHermano(event)" class="space-y-4">
@@ -96,11 +96,11 @@
             
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Nombre Completo</label>
-              <input type="text" id="hermano-nombre" required placeholder="Ej. Juan Pérez" class="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 outline-none transition">
+              <input type="text" id="hermano-nombre" required placeholder="Ej. Carlos Mendoza" class="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 outline-none transition">
             </div>
 
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Rol en la Comunidad</label>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Rol Comunitario</label>
               <select id="hermano-rol" class="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 outline-none transition">
                 <option value="Responsable">Responsable</option>
                 <option value="Co-responsable">Co-responsable</option>
@@ -143,7 +143,7 @@
                 <tr>
                   <th class="p-3.5">Nombre</th>
                   <th class="p-3.5">Rol</th>
-                  <th class="p-3.5">Estado Conjugal</th>
+                  <th class="p-3.5">Matrimonio</th>
                   <th class="p-3.5 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -156,84 +156,100 @@
       </div>
     </section>
 
-    <!-- 2. PESTAÑA: GESTIÓN DE GRUPOS Y CASAS -->
+    <!-- 2. PESTAÑA: GESTIÓN DE GRUPOS -->
     <section id="grupos" class="tab-content app-section hidden">
       <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestión de Grupos y Celebraciones</h1>
-        <p class="text-slate-500 text-sm mt-0.5">Crea grupos aleatorios, asigna estados o sub-divide para las Celebraciones por las Casas.</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">2. Estructuración de Grupos</h1>
+        <p class="text-slate-500 text-sm mt-0.5">Crea equipos de trabajo (al azar o para Casas), edita sus miembros y ajusta su estado.</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-          <h3 class="font-bold text-slate-800 mb-2 text-sm"><i class="fa-solid fa-shuffle text-indigo-600 mr-2"></i> Generador Aleatorio</h3>
-          <div class="space-y-3">
-            <div>
-              <label class="block text-xs font-medium text-slate-500 mb-1">Tipo de Evento/Nombre</label>
-              <select id="azar-tipo" class="w-full bg-slate-50 border border-slate-300 text-xs rounded-xl px-3 py-2 outline-none">
-                <option value="Eucaristía">Eucaristía Comunitaria</option>
-                <option value="Tema">Tema de Formación</option>
-                <option value="Palabra">Celebración de la Palabra</option>
-                <option value="Personaje">Escrutinio de Personaje</option>
-              </select>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Generar al Azar -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm mb-1"><i class="fa-solid fa-shuffle text-indigo-600 mr-2"></i> Generar Grupos Aleatorios</h3>
+            <p class="text-xs text-slate-500 mb-4">Reparte equitativamente a todos los hermanos de la comunidad.</p>
+            <div class="flex gap-3">
+              <div class="flex-1">
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Nombre base del grupo</label>
+                <input type="text" id="azar-prefijo" value="Equipo" placeholder="Ej. Equipo" class="w-full bg-slate-50 border border-slate-300 text-xs rounded-xl p-2.5 outline-none">
+              </div>
+              <div class="w-28">
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Cantidad</label>
+                <input type="number" id="azar-cantidad" min="1" max="10" value="3" class="w-full bg-slate-50 border border-slate-300 text-xs rounded-xl p-2.5 outline-none">
+              </div>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-500 mb-1">Cantidad de Grupos</label>
-              <input type="number" id="azar-cantidad" min="1" max="10" value="3" class="w-full bg-slate-50 border border-slate-300 text-xs rounded-xl px-3 py-2 outline-none">
-            </div>
-            <button onclick="generarGruposAzar()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs py-2.5 rounded-xl transition shadow-sm">
-              Generar Grupos al Azar
-            </button>
           </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-          <h3 class="font-bold text-slate-800 mb-2 text-sm"><i class="fa-solid fa-house-user text-emerald-600 mr-2"></i> Celebraciones por las Casas</h3>
-          <p class="text-xs text-slate-500 mb-3">Subdivide a la comunidad equitativamente asignando a los equipos de preparación como guías.</p>
-          <button onclick="generarGruposCasas()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2.5 rounded-xl transition shadow-sm mt-auto">
-            Dividir para Casas
+          <button onclick="generarGruposAzar()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs py-2.5 rounded-xl transition shadow-sm mt-4">
+            Crear Grupos Aleatorios
           </button>
         </div>
 
+        <!-- Division para las Casas -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
-            <h3 class="font-bold text-slate-800 mb-1 text-sm"><i class="fa-solid fa-list-check text-slate-600 mr-2"></i> Resumen Activo</h3>
-            <p class="text-xs text-slate-500">Total de grupos generados actualmente en el sistema.</p>
+            <h3 class="font-bold text-slate-900 text-sm mb-1"><i class="fa-solid fa-house-user text-emerald-600 mr-2"></i> Dividir para Celebración por las Casas</h3>
+            <p class="text-xs text-slate-500 mb-4">Usa a los hermanos asignados en la última preparación registrada como guías de cada Casa.</p>
           </div>
-          <div class="text-3xl font-extrabold text-slate-900 mt-3" id="total-grupos-creados">0</div>
+          <button onclick="generarGruposCasas()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2.5 rounded-xl transition shadow-sm">
+            Dividir Comunidad por Casas
+          </button>
         </div>
       </div>
 
-      <!-- LISTA DE GRUPOS GENERADOS -->
+      <!-- Añadir Hermano Manual a Grupo -->
+      <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl mb-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <span class="text-xs font-semibold text-indigo-900"><i class="fa-solid fa-user-plus mr-1"></i> Modificación Manual:</span>
+        <div class="flex flex-1 w-full sm:w-auto gap-2">
+          <select id="select-grupo-destino" class="bg-white border border-indigo-200 text-xs rounded-xl px-3 py-2 outline-none flex-1">
+            <!-- Dinámico -->
+          </select>
+          <select id="select-hermano-agregar" class="bg-white border border-indigo-200 text-xs rounded-xl px-3 py-2 outline-none flex-1">
+            <!-- Dinámico -->
+          </select>
+          <button onclick="agregarHermanoAGrupoManual()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-sm">
+            Añadir
+          </button>
+        </div>
+      </div>
+
+      <!-- LISTA DE GRUPOS -->
       <div id="contenedor-grupos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <!-- Generación dinámica -->
       </div>
     </section>
 
-    <!-- 3. PESTAÑA: NUEVA PREPARACIÓN -->
+    <!-- 3. PESTAÑA: ASIGNAR PREPARACIÓN -->
     <section id="preparacion" class="tab-content app-section hidden">
       <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Crear Nueva Preparación</h1>
-        <p class="text-slate-500 text-sm mt-0.5">Asigna el equipo encargado y la modalidad a preparar.</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">3. Asignar Tema / Preparación</h1>
+        <p class="text-slate-500 text-sm mt-0.5">Asigna la modalidad y tema bíblico a un grupo de trabajo ya existente.</p>
       </div>
 
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 md:p-8 max-w-3xl">
-        <form id="form-preparacion" onsubmit="guardarPreparacion(event)" class="space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 md:p-8 max-w-2xl mx-auto">
+        <form id="form-preparacion" onsubmit="registrarPreparacion(event)" class="space-y-6">
+          
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Equipo Asignado</label>
-            <input type="text" id="equipo-numero" disabled class="w-full bg-slate-100 border border-slate-200 text-slate-700 font-bold text-sm rounded-xl px-4 py-3 cursor-not-allowed">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Seleccionar Grupo de Trabajo</label>
+            <select id="select-grupo-preparar" required class="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-slate-800 text-sm rounded-xl px-4 py-3 outline-none transition">
+              <!-- Dinámico -->
+            </select>
           </div>
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Modalidad a Preparar</label>
-            <div class="grid grid-cols-3 gap-3">
-              <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 transition bg-slate-50/50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700 font-medium text-sm">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <label class="flex items-center justify-center gap-1.5 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 transition bg-slate-50/50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700 font-medium text-xs">
                 <input type="radio" name="modalidad" value="Tema" checked onclick="actualizarModalidad()" class="accent-indigo-600"> Tema
               </label>
-              <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 transition bg-slate-50/50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700 font-medium text-sm">
+              <label class="flex items-center justify-center gap-1.5 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 transition bg-slate-50/50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700 font-medium text-xs">
                 <input type="radio" name="modalidad" value="Palabra" onclick="actualizarModalidad()" class="accent-indigo-600"> Palabra
               </label>
-              <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 transition bg-slate-50/50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700 font-medium text-sm">
+              <label class="flex items-center justify-center gap-1.5 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 transition bg-slate-50/50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700 font-medium text-xs">
                 <input type="radio" name="modalidad" value="Personaje" onclick="actualizarModalidad()" class="accent-indigo-600"> Personaje
+              </label>
+              <label class="flex items-center justify-center gap-1.5 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 transition bg-slate-50/50 has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700 font-medium text-xs">
+                <input type="radio" name="modalidad" value="Eucaristía" onclick="actualizarModalidad()" class="accent-indigo-600"> Eucaristía
               </label>
             </div>
           </div>
@@ -243,38 +259,8 @@
             <input type="text" id="input-detalle" placeholder="Ej. La Lectura Creyente de la Realidad" required class="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-slate-800 text-sm rounded-xl px-4 py-3 outline-none transition">
           </div>
 
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Seleccionar Integrante</label>
-            <div class="flex gap-3">
-              <select id="select-integrantes" class="flex-1 bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-slate-800 text-sm rounded-xl px-4 py-3 outline-none transition">
-                <!-- Dinámico -->
-              </select>
-              <button type="button" onclick="agregarIntegrante()" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm px-5 py-3 rounded-xl transition shadow-sm active:scale-95">
-                <i class="fa-solid fa-user-plus text-xs"></i> Añadir
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Integrantes Asignados al Equipo</label>
-            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/30">
-              <table class="w-full text-left text-sm">
-                <thead class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
-                  <tr>
-                    <th class="p-3.5">Nombre</th>
-                    <th class="p-3.5">Rol</th>
-                    <th class="p-3.5 text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody id="tabla-integrantes-equipo" class="divide-y divide-slate-200">
-                  <!-- Dinámico -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-
           <button type="submit" class="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition shadow-md hover:shadow-indigo-200">
-            <i class="fa-solid fa-check text-base"></i> Guardar y Finalizar Preparación
+            <i class="fa-solid fa-circle-check text-base"></i> Registrar Preparación
           </button>
         </form>
       </div>
@@ -283,8 +269,8 @@
     <!-- 4. PESTAÑA: HISTORIAL -->
     <section id="historial" class="tab-content app-section hidden">
       <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Historial de Preparaciones</h1>
-        <p class="text-slate-500 text-sm mt-0.5">Consulta el registro histórico de todas las preparaciones del grupo.</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">4. Historial Oficial</h1>
+        <p class="text-slate-500 text-sm mt-0.5">Bitácora cronológica de todas las preparaciones registradas.</p>
       </div>
 
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
@@ -292,11 +278,10 @@
           <table class="w-full text-left text-sm">
             <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
-                <th class="p-4">Equipo</th>
-                <th class="p-4">Tipo</th>
-                <th class="p-4">Detalle</th>
-                <th class="p-4">Integrantes</th>
-                <th class="p-4">Estado</th>
+                <th class="p-4">Equipo / Grupo</th>
+                <th class="p-4">Modalidad</th>
+                <th class="p-4">Detalle / Cita</th>
+                <th class="p-4">Integrantes Participantes</th>
                 <th class="p-4">Fecha</th>
               </tr>
             </thead>
@@ -308,18 +293,18 @@
       </div>
     </section>
 
-    <!-- 5. PESTAÑA: INSIGHTS & ESTADÍSTICAS DETALLADAS -->
+    <!-- 5. PESTAÑA: INSIGHTS & ESTADÍSTICAS -->
     <section id="estadisticas" class="tab-content app-section hidden">
       <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Estadísticas & Insights Detallados</h1>
-        <p class="text-slate-500 text-sm mt-0.5">Análisis exhaustivo de modalidades, roles, estado conjugal y niveles de participación.</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">5. Panel de Insights & Análisis</h1>
+        <p class="text-slate-500 text-sm mt-0.5">Estadísticas avanzadas generadas a partir del padrón y el historial.</p>
       </div>
       
-      <!-- Metricas Principales -->
+      <!-- Contadores Globale -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm text-center">
           <div class="text-3xl font-extrabold text-indigo-600" id="stat-total">0</div>
-          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">Preparaciones</div>
+          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">Total Preparaciones</div>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm text-center">
           <div class="text-3xl font-extrabold text-emerald-600" id="stat-temas">0</div>
@@ -331,58 +316,48 @@
         </div>
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm text-center">
           <div class="text-3xl font-extrabold text-purple-600" id="stat-personajes">0</div>
-          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">Personajes</div>
+          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">Personajes / Euc.</div>
         </div>
       </div>
 
-      <!-- Gráficas Visuales de Distribución -->
+      <!-- Gráficas Visuales -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
-          <h3 class="font-bold text-slate-800 text-sm mb-4"><i class="fa-solid fa-chart-column text-indigo-600 mr-2"></i> Distribución de Modalidades</h3>
-          <div class="space-y-4" id="grafica-modalidades">
-            <!-- Dinámico con barras -->
-          </div>
+          <h3 class="font-bold text-slate-800 text-sm mb-4"><i class="fa-solid fa-chart-pie text-indigo-600 mr-2"></i> Modalidades de Preparación</h3>
+          <div class="space-y-4" id="grafica-modalidades"></div>
         </div>
 
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
-          <h3 class="font-bold text-slate-800 text-sm mb-4"><i class="fa-solid fa-user-shield text-emerald-600 mr-2"></i> Participación según Roles</h3>
-          <div class="space-y-4" id="grafica-roles">
-            <!-- Dinámico con barras -->
-          </div>
+          <h3 class="font-bold text-slate-800 text-sm mb-4"><i class="fa-solid fa-users text-emerald-600 mr-2"></i> Convocatorias por Rol Comunitario</h3>
+          <div class="space-y-4" id="grafica-roles"></div>
         </div>
       </div>
 
-      <!-- Listas Detalladas Rebuscadas -->
+      <!-- Tablas Detalladas por Persona -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 mb-3"><i class="fa-solid fa-heart text-rose-500 mr-1.5"></i> Participación Matrimonial</h4>
-          <div id="stat-matrimonios" class="space-y-2 text-sm text-slate-700">
-            <!-- Dinámico -->
-          </div>
+          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 mb-3"><i class="fa-solid fa-heart text-rose-500 mr-1.5"></i> Presencia Matrimonial</h4>
+          <div id="stat-matrimonios" class="space-y-2 text-xs text-slate-700"></div>
         </div>
 
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 mb-3"><i class="fa-solid fa-trophy text-amber-500 mr-1.5"></i> Hermanos Más Activos</h4>
-          <ul id="lista-mas-activos" class="space-y-2 text-sm text-slate-700">
-            <!-- Dinámico -->
-          </ul>
+          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 mb-3"><i class="fa-solid fa-arrow-up-right-dots text-emerald-600 mr-1.5"></i> Hermanos Más Convocados</h4>
+          <ul id="lista-mas-activos" class="space-y-2 text-xs text-slate-700"></ul>
         </div>
 
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 mb-3"><i class="fa-solid fa-user-clock text-slate-400 mr-1.5"></i> Hermanos Menos Convocados</h4>
-          <ul id="lista-menos-activos" class="space-y-2 text-sm text-slate-700">
-            <!-- Dinámico -->
-          </ul>
+          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 mb-3"><i class="fa-solid fa-arrow-down-left-dots text-slate-400 mr-1.5"></i> Hermanos Menos Convocados</h4>
+          <ul id="lista-menos-activos" class="space-y-2 text-xs text-slate-700"></ul>
         </div>
       </div>
 
-      <!-- Panel de Insights Inteligente -->
-      <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-6 rounded-2xl shadow-md">
+      <!-- Conclusión de Insights -->
+      <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 rounded-2xl shadow-md">
         <h3 class="text-base font-bold flex items-center gap-2 mb-2">
-          <span class="p-2 bg-indigo-500/30 rounded-lg"><i class="fa-solid fa-lightbulb text-amber-300"></i></span>
-          Conclusiones Comunitarias & Recomendaciones
+          <span class="p-2 bg-indigo-500/30 rounded-lg"><i class="fa-solid fa-brain text-amber-300"></i></span>
+          Diagnóstico y Recomendación de Rotación
         </h3>
-        <p id="insight-texto" class="text-slate-300 text-sm leading-relaxed">Analizando los datos comunitarios...</p>
+        <p id="insight-texto" class="text-slate-300 text-sm leading-relaxed">Cargando métricas...</p>
       </div>
     </section>
 
