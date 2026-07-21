@@ -3,376 +3,135 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>COMUNIDAD #5 - Gestión Litúrgica</title>
-  <!-- FAVICON DINÁMICO -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 22V10l-6-5-6 5v12'/><path d='M12 2v3'/><path d='M10 4h4'/><path d='M10 9a2 2 0 0 1 4 0v11h-4Z'/></svg>">
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    .modal-backdrop {
-      background-color: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-    }
-  </style>
+  <title>Gestión de Preparaciones de la Comunidad</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex">
+<body>
 
-  <!-- SIDEBAR CON PESTAÑAS -->
-  <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0">
-    <div>
-      <div class="p-5 border-b border-slate-800 flex items-center gap-3">
-        <div class="p-2 bg-indigo-600 text-white rounded-lg">
-          <i data-lucide="church" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h1 class="font-bold text-white text-base tracking-wide">COMUNIDAD #5</h1>
-          <p class="text-xs text-slate-400">Gestión Litúrgica</p>
-        </div>
-      </div>
-      
-      <!-- NAVEGACIÓN -->
-      <nav class="p-4 space-y-1 text-sm font-medium">
-        <button onclick="UI.switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-slate-400 hover:bg-slate-800">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Panel Principal
-        </button>
-        <button onclick="UI.switchTab('equipos')" id="nav-equipos" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-slate-400 hover:bg-slate-800">
-          <i data-lucide="users-round" class="w-4 h-4"></i> Equipos
-        </button>
-        <button onclick="UI.switchTab('casas')" id="nav-casas" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-slate-400 hover:bg-slate-800">
-          <i data-lucide="home" class="w-4 h-4"></i> Casas
-        </button>
-        <button onclick="UI.switchTab('analytics')" id="nav-analytics" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-slate-400 hover:bg-slate-800">
-          <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Estadísticas & Insights
-        </button>
-      </nav>
-    </div>
-
-    <!-- RESPALDO JSON -->
-    <div class="p-4 border-t border-slate-800 space-y-2">
-      <p class="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1">Base de Datos</p>
-      <button onclick="StorageService.exportJSON()" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition border border-slate-700/50">
-        <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i> Exportar (.json)
-      </button>
-      <label class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 px-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer transition border border-slate-700/50">
-        <i data-lucide="upload" class="w-4 h-4 text-indigo-400"></i> Cargar (.json)
-        <input type="file" id="input-import-json" accept=".json" class="hidden" onchange="StorageService.importJSON(event)">
-      </label>
-    </div>
+  <!-- SIDEBAR DE NAVEGACIÓN -->
+  <aside class="sidebar">
+    <h2>Comunidad</h2>
+    <nav>
+      <ul>
+        <li><a href="#" class="nav-link active" onclick="cambiarPestana('preparacion', event)">Nueva Preparación</a></li>
+        <li><a href="#" class="nav-link" onclick="cambiarPestana('historial', event)">Historial de Preparaciones</a></li>
+        <li><a href="#" class="nav-link" onclick="cambiarPestana('estadisticas', event)">Estadísticas & Insights</a></li>
+      </ul>
+    </nav>
   </aside>
 
   <!-- CONTENIDO PRINCIPAL -->
-  <div class="flex-1 min-w-0">
-    <main class="p-6 max-w-7xl mx-auto space-y-6">
+  <main class="main-content">
 
-      <!-- HEADER Y ACCIONES -->
-      <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-xl shadow-sm border border-slate-200/80">
-        <div>
-          <h2 class="text-xl font-bold text-slate-900" id="tab-title">Panel Principal</h2>
-          <p class="text-xs text-slate-500">COMUNIDAD #5 - Preparaciones, Liturgia y Estadísticas.</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <button onclick="UI.openModalHermanos()" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition shadow-sm">
-            <i data-lucide="user-plus" class="w-4 h-4"></i> Hermanos
-          </button>
-          <button onclick="UI.openModalGrupo()" class="flex-1 sm:flex-none bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition shadow-sm">
-            <i data-lucide="users-round" class="w-4 h-4"></i> Crear Equipo
-          </button>
-          <button onclick="UI.openModalCasas()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition shadow-sm">
-            <i data-lucide="home" class="w-4 h-4"></i> Dividir por Casas
-          </button>
-        </div>
-      </header>
-
-      <!-- VISTA 1: DASHBOARD -->
-      <div id="view-dashboard" class="tab-view space-y-6">
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Total Comunidad</p>
-            <p id="stat-total" class="text-2xl font-bold text-slate-900">0</p>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Hombres / Mujeres</p>
-            <div class="flex items-center gap-2 mt-1">
-              <span class="text-sm font-bold text-blue-600" id="stat-hombres">0 ♂</span>
-              <span class="text-slate-300">|</span>
-              <span class="text-sm font-bold text-pink-600" id="stat-mujeres">0 ♀</span>
-            </div>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Matrimonios</p>
-            <p id="stat-matrimonios" class="text-2xl font-bold text-indigo-600">0</p>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Sin Equipo Ord.</p>
-            <p id="stat-disponibles" class="text-2xl font-bold text-amber-600">0</p>
-          </div>
-        </section>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-600">Equipos Recientes</h3>
-              <button onclick="UI.switchTab('equipos')" class="text-xs text-indigo-600 font-semibold hover:underline">Ver todos</button>
-            </div>
-            <div id="dash-summary-equipos" class="space-y-2"></div>
-          </div>
-
-          <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-              <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-700">Casas de Celebración</h3>
-              <button onclick="UI.switchTab('casas')" class="text-xs text-emerald-600 font-semibold hover:underline">Ver mapa de casas</button>
-            </div>
-            <div id="dash-summary-casas" class="space-y-2"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- VISTA 2: EQUIPOS -->
-      <div id="view-equipos" class="tab-view hidden space-y-4">
-        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">Todos los Equipos Configurados</h3>
-        <div id="grid-grupos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      </div>
-
-      <!-- VISTA 3: CASAS -->
-      <div id="view-casas" class="tab-view hidden space-y-4">
-        <div class="flex justify-between items-center">
-          <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-2">
-            <i data-lucide="home" class="w-4 h-4"></i> Distribución de Celebración por las Casas
-          </h3>
-          <button onclick="UI.limpiarCasas()" class="text-xs text-rose-600 hover:underline">Limpiar Casas</button>
-        </div>
-        <div id="grid-casas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      </div>
-
-      <!-- VISTA 4: ANALYTICS & INSIGHTS (NUEVO) -->
-      <div id="view-analytics" class="tab-view hidden space-y-6">
-        
-        <!-- RESUMEN GENERAL PREPARACIONES -->
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Ya Preparadas</p>
-            <p id="stat-prep-completadas" class="text-2xl font-bold text-emerald-600">0</p>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">En Preparación</p>
-            <p id="stat-prep-enproceso" class="text-2xl font-bold text-amber-600">0</p>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Por Comenzar</p>
-            <p id="stat-prep-pendientes" class="text-2xl font-bold text-slate-400">0</p>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Hermano/a Más Activo/a</p>
-            <p id="stat-top-hermano" class="text-sm font-bold text-indigo-700 mt-1 truncate">Sin registro</p>
-          </div>
-        </section>
-
-        <!-- SECCIÓN DE DATOS CURIOSOS -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          <!-- RANKING DE PARTICIPACIÓN -->
-          <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-              <i data-lucide="trophy" class="w-4 h-4 text-amber-500"></i> Frecuencia de Preparación por Hermano/a
-            </h3>
-            <div id="analytics-ranking-hermanos" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
-          </div>
-
-          <!-- PAREJAS / DÚOS QUE MÁS SALEN JUNTOS -->
-          <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-              <i data-lucide="users" class="w-4 h-4 text-indigo-500"></i> Dúos Frecuentes (Coincidencias en Equipos)
-            </h3>
-            <div id="analytics-duos-frecuentes" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
-          </div>
-
-        </div>
-
-        <!-- REPOSITORIO DE TEMAS, PALABRAS Y PERSONAJES -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-            <i data-lucide="book-open" class="w-4 h-4 text-emerald-600"></i> Histórico Litúrgico (Temas, Palabras y Personajes)
-          </h3>
+    <!-- PESTAÑA 1: NUEVA PREPARACIÓN -->
+    <section id="preparacion" class="tab-content active">
+      <h1>Crear Nueva Preparación</h1>
+      <div class="card">
+        <form id="form-preparacion" onsubmit="guardarPreparacion(event)">
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
-              <p class="text-xs font-bold text-slate-600 uppercase border-b pb-1">📖 Palabras / Lecturas</p>
-              <ul id="list-analytics-palabras" class="text-xs space-y-1 text-slate-700 max-h-48 overflow-y-auto"></ul>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
-              <p class="text-xs font-bold text-slate-600 uppercase border-b pb-1">💡 Temas</p>
-              <ul id="list-analytics-temas" class="text-xs space-y-1 text-slate-700 max-h-48 overflow-y-auto"></ul>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
-              <p class="text-xs font-bold text-slate-600 uppercase border-b pb-1">👤 Personajes</p>
-              <ul id="list-analytics-personajes" class="text-xs space-y-1 text-slate-700 max-h-48 overflow-y-auto"></ul>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-    </main>
-  </div>
-
-  <!-- MODALES -->
-  <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
-
-    <!-- 1. REGISTRO HERMANOS -->
-    <div id="modal-hermanos" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden hidden flex-col max-h-[90vh]">
-      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-        <h3 class="text-base font-bold">COMUNIDAD #5 - Registro de Hermanos</h3>
-        <button onclick="UI.closeModals()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <div class="p-6 overflow-y-auto space-y-6">
-        <form id="form-hermano" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-          <p class="text-xs font-bold text-slate-700 uppercase">Nuevo Hermano/a</p>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <input type="text" id="nombre-hermano" placeholder="Nombre" required class="text-sm bg-white border border-slate-300 rounded-lg px-3 py-2">
-            <input type="text" id="apellido-hermano" placeholder="Apellido" required class="text-sm bg-white border border-slate-300 rounded-lg px-3 py-2">
-            <select id="sexo-hermano" required class="text-sm bg-white border border-slate-300 rounded-lg px-3 py-2">
-              <option value="">Sexo...</option>
-              <option value="H">Hombre ♂</option>
-              <option value="M">Mujer ♀</option>
-            </select>
+          <div class="form-group">
+            <label>Número de Equipo (Asignado Automáticamente):</label>
+            <input type="text" id="equipo-numero" disabled style="background-color: #f1f5f9; font-weight: bold;">
           </div>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Cónyuge / Esposo(a) (Opcional):</label>
-            <select id="pareja-hermano" class="w-full text-sm bg-white border border-slate-300 rounded-lg px-3 py-2">
-              <option value="">Soltero / Sin registrar cónyuge</option>
-            </select>
+          <div class="form-group">
+            <label>Modalidad a Preparar (Selecciona una):</label>
+            <div class="radio-group">
+              <label><input type="radio" name="modalidad" value="Tema" checked onclick="actualizarModalidad()"> Tema</label>
+              <label><input type="radio" name="modalidad" value="Palabra" onclick="actualizarModalidad()"> Palabra</label>
+              <label><input type="radio" name="modalidad" value="Personaje" onclick="actualizarModalidad()"> Personaje</label>
+            </div>
           </div>
 
-          <button type="submit" class="w-full bg-indigo-600 text-white text-xs font-bold py-2.5 rounded-lg flex items-center justify-center gap-2">
-            <i data-lucide="plus" class="w-4 h-4"></i> Guardar Hermano
-          </button>
+          <div class="form-group">
+            <label id="label-detalle">Detalle del Tema:</label>
+            <input type="text" id="input-detalle" placeholder="Ej. La Lectura Creyente de la Realidad" required>
+          </div>
+
+          <div class="form-group">
+            <label>Seleccionar Integrante de la Comunidad:</label>
+            <div style="display: flex; gap: 10px;">
+              <select id="select-integrantes">
+                <!-- Se llena dinámicamente desde JS -->
+              </select>
+              <button type="button" onclick="agregarIntegrante()">Añadir</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Integrantes Asignados al Equipo:</label>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Rol</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-integrantes-equipo">
+                <!-- Integrantes agregados dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+
+          <button type="submit" style="width: 100%; margin-top: 15px;">Guardar y Finalizar Preparación</button>
         </form>
+      </div>
+    </section>
 
-        <div class="space-y-3">
-          <div class="flex justify-between items-center">
-            <p class="text-xs font-bold text-slate-700 uppercase">Comunidad (<span id="cnt-lista-hermanos">0</span>)</p>
-            <input type="text" id="search-hermano" placeholder="Buscar..." oninput="UI.filterHermanos(this.value)" class="text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md">
-          </div>
-          <div id="lista-hermanos-container" class="space-y-2 max-h-52 overflow-y-auto"></div>
+    <!-- PESTAÑA 2: HISTORIAL DE PREPARACIONES -->
+    <section id="historial" class="tab-content">
+      <h1>Historial de Preparaciones</h1>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Equipo #</th>
+              <th>Tipo</th>
+              <th>Detalle</th>
+              <th>Integrantes</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-historial">
+            <!-- Se llena dinámicamente desde JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 3: ESTADÍSTICAS & INSIGHTS -->
+    <section id="estadisticas" class="tab-content">
+      <h1>Estadísticas & Insights</h1>
+      
+      <div class="grid-stats">
+        <div class="stat-card">
+          <div class="num" id="stat-total">0</div>
+          <div>Total Preparaciones</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" id="stat-temas">0</div>
+          <div>Temas</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" id="stat-palabras">0</div>
+          <div>Palabras</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" id="stat-personajes">0</div>
+          <div>Personajes</div>
         </div>
       </div>
-    </div>
 
-    <!-- 2. CREAR / EDITAR EQUIPO CON DATOS LITÚRGICOS -->
-    <div id="modal-grupo" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden hidden flex-col max-h-[90vh]">
-      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-        <h3 id="modal-grupo-title" class="text-base font-bold">Crear Equipo</h3>
-        <button onclick="UI.closeModals()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <div class="card">
+        <h3>💡 Insights de la Comunidad</h3>
+        <p id="insight-texto" style="margin-top: 10px; color: #475569;">No hay suficientes datos registrados para generar insights.</p>
       </div>
+    </section>
 
-      <form id="form-grupo" class="p-6 space-y-4 overflow-y-auto">
-        <input type="hidden" id="edit-grupo-id" value="">
+  </main>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Equipo:</label>
-            <input type="text" id="nombre-grupo" placeholder="Ej: Equipo 1" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2">
-          </div>
-          
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Tipo de Grupo:</label>
-            <select id="tipo-grupo" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2">
-              <option value="preparacion">Preparación Litúrgica</option>
-              <option value="eucaristia">Eucaristía (Excepcional)</option>
-              <option value="convivencia">Convivencia / Logística</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- ESTADO Y CONTENIDO LITÚRGICO -->
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
-          <p class="text-xs font-bold text-slate-700 uppercase">Detalles de la Preparación</p>
-          
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Estado de Preparación:</label>
-            <select id="estado-grupo" class="w-full text-xs bg-white border border-slate-300 rounded-lg px-3 py-2 font-bold">
-              <option value="pendiente">⚪ No empezado (Pendiente)</option>
-              <option value="proceso">🟡 En preparación</option>
-              <option value="preparado">🟢 Ya preparado (Listo)</option>
-            </select>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <div>
-              <label class="block text-[11px] text-slate-600 mb-1">Palabra / Cita:</label>
-              <input type="text" id="palabra-grupo" placeholder="Ej: Éxodo 3" class="w-full text-xs bg-white border border-slate-300 rounded-lg px-2 py-1.5">
-            </div>
-            <div>
-              <label class="block text-[11px] text-slate-600 mb-1">Tema:</label>
-              <input type="text" id="tema-grupo" placeholder="Ej: Fe y Confianza" class="w-full text-xs bg-white border border-slate-300 rounded-lg px-2 py-1.5">
-            </div>
-            <div>
-              <label class="block text-[11px] text-slate-600 mb-1">Personaje:</label>
-              <input type="text" id="personaje-grupo" placeholder="Ej: Moisés" class="w-full text-xs bg-white border border-slate-300 rounded-lg px-2 py-1.5">
-            </div>
-          </div>
-        </div>
-
-        <!-- MODO DE SELECCIÓN -->
-        <div id="sec-grupo-modos" class="space-y-3">
-          <div class="flex justify-between items-center pt-2">
-            <label class="text-xs font-bold text-slate-700 uppercase">Selección de Integrantes</label>
-            <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
-              <button type="button" id="tab-manual" onclick="UI.toggleModoEquipo('manual')" class="px-3 py-1 rounded bg-white text-indigo-600 shadow-sm">Manual</button>
-              <button type="button" id="tab-auto" onclick="UI.toggleModoEquipo('auto')" class="px-3 py-1 rounded text-slate-600">Sorteo Aleatorio</button>
-            </div>
-          </div>
-
-          <div id="sec-equipo-manual">
-            <div id="miembros-checkboxes" class="max-h-40 overflow-y-auto space-y-1 p-2 bg-slate-50 rounded-lg border border-slate-200"></div>
-          </div>
-
-          <div id="sec-equipo-auto" class="hidden space-y-3 bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
-            <p class="text-xs text-indigo-900">Sorteo automático equitativo para toda la comunidad disponible.</p>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-xs text-slate-600">Disponibles: <strong id="cant-disponibles" class="text-indigo-600">0</strong></span>
-              <div class="flex items-center gap-2">
-                <label class="text-xs font-bold text-slate-700">N° Equipos:</label>
-                <input type="number" id="cant-equipos-auto" min="2" value="2" class="w-16 text-sm bg-white border border-slate-300 rounded-lg px-2 py-1 text-center font-bold">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="UI.closeModals()" class="px-4 py-2 text-xs font-medium text-slate-600">Cancelar</button>
-          <button type="submit" class="px-4 py-2 text-xs font-bold bg-indigo-600 text-white rounded-lg" id="btn-guardar-grupo">Guardar Equipo</button>
-        </div>
-      </form>
-    </div>
-
-    <!-- 3. CELEBRACIÓN POR LAS CASAS -->
-    <div id="modal-casas" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden hidden flex-col">
-      <div class="px-6 py-4 bg-emerald-800 text-white flex justify-between items-center">
-        <h3 class="text-base font-bold">Celebración por las Casas</h3>
-        <button onclick="UI.closeModals()" class="text-slate-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <form id="form-casas" class="p-6 space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Equipo Responsable:</label>
-          <select id="select-equipo-preparador" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2">
-            <option value="">Selecciona un equipo...</option>
-          </select>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="UI.closeModals()" class="px-4 py-2 text-xs text-slate-600">Cancelar</button>
-          <button type="submit" class="px-4 py-2 text-xs font-bold bg-emerald-600 text-white rounded-lg">Generar Casas</button>
-        </div>
-      </form>
-    </div>
-
-  </div>
-
-  <script src="script.js"></script>
+  <!-- ARCHIVO DE LÓGICA VINCULADO -->
+  <script src="app.js"></script>
 </body>
 </html>
