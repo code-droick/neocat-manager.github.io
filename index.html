@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestor Comunitario Litúrgico</title>
+  <!-- FAVICON DINÁMICO (Icono de Iglesia) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 22V10l-6-5-6 5v12'/><path d='M12 2v3'/><path d='M10 4h4'/><path d='M10 9a2 2 0 0 1 4 0v11h-4Z'/></svg>">
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -15,7 +18,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex">
 
-  <!-- SIDEBAR -->
+  <!-- SIDEBAR CON PESTAÑAS -->
   <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0">
     <div>
       <div class="p-5 border-b border-slate-800 flex items-center gap-3">
@@ -27,10 +30,18 @@
           <p class="text-xs text-slate-400">Gestión Litúrgica</p>
         </div>
       </div>
+      
+      <!-- NAVEGACIÓN ENTRE PESTAÑAS -->
       <nav class="p-4 space-y-1 text-sm font-medium">
-        <a href="#" class="flex items-center gap-3 px-3 py-2.5 bg-indigo-600/10 text-indigo-400 rounded-lg">
+        <button onclick="UI.switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-slate-400 hover:bg-slate-800">
           <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Panel Principal
-        </a>
+        </button>
+        <button onclick="UI.switchTab('equipos')" id="nav-equipos" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-slate-400 hover:bg-slate-800">
+          <i data-lucide="users-round" class="w-4 h-4"></i> Equipos
+        </button>
+        <button onclick="UI.switchTab('casas')" id="nav-casas" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-slate-400 hover:bg-slate-800">
+          <i data-lucide="home" class="w-4 h-4"></i> Casas
+        </button>
       </nav>
     </div>
 
@@ -54,8 +65,8 @@
       <!-- HEADER Y ACCIONES -->
       <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-xl shadow-sm border border-slate-200/80">
         <div>
-          <h2 class="text-xl font-bold text-slate-900">Gestor Litúrgico Comunitario</h2>
-          <p class="text-xs text-slate-500">Preparación de Palabra/Tema/Personaje y división por Casas.</p>
+          <h2 class="text-xl font-bold text-slate-900" id="tab-title">Panel Principal</h2>
+          <p class="text-xs text-slate-500">Gestión de la comunidad, liturgia y preparación.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button onclick="UI.openModalHermanos()" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition shadow-sm">
@@ -70,38 +81,60 @@
         </div>
       </header>
 
-      <!-- ANALYTICS / ESTADÍSTICAS -->
-      <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-          <p class="text-xs font-medium text-slate-500">Total Comunidad</p>
-          <p id="stat-total" class="text-2xl font-bold text-slate-900">0</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-          <p class="text-xs font-medium text-slate-500">Hombres / Mujeres</p>
-          <div class="flex items-center gap-2 mt-1">
-            <span class="text-sm font-bold text-blue-600" id="stat-hombres">0 ♂</span>
-            <span class="text-slate-300">|</span>
-            <span class="text-sm font-bold text-pink-600" id="stat-mujeres">0 ♀</span>
+      <!-- VISTA 1: DASHBOARD / PANEL PRINCIPAL -->
+      <div id="view-dashboard" class="tab-view space-y-6">
+        <!-- ANALYTICS / ESTADÍSTICAS -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Total Comunidad</p>
+            <p id="stat-total" class="text-2xl font-bold text-slate-900">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Hombres / Mujeres</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-sm font-bold text-blue-600" id="stat-hombres">0 ♂</span>
+              <span class="text-slate-300">|</span>
+              <span class="text-sm font-bold text-pink-600" id="stat-mujeres">0 ♀</span>
+            </div>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Matrimonios</p>
+            <p id="stat-matrimonios" class="text-2xl font-bold text-indigo-600">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Sin Equipo Ord.</p>
+            <p id="stat-disponibles" class="text-2xl font-bold text-amber-600">0</p>
+          </div>
+        </section>
+
+        <!-- RESUMEN RÁPIDO DE EQUIPOS Y CASAS -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-600">Equipos Recientes</h3>
+              <button onclick="UI.switchTab('equipos')" class="text-xs text-indigo-600 font-semibold hover:underline">Ver todos</button>
+            </div>
+            <div id="dash-summary-equipos" class="space-y-2"></div>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-700">Casas de Celebración</h3>
+              <button onclick="UI.switchTab('casas')" class="text-xs text-emerald-600 font-semibold hover:underline">Ver mapa de casas</button>
+            </div>
+            <div id="dash-summary-casas" class="space-y-2"></div>
           </div>
         </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-          <p class="text-xs font-medium text-slate-500">Matrimonios</p>
-          <p id="stat-matrimonios" class="text-2xl font-bold text-indigo-600">0</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-          <p class="text-xs font-medium text-slate-500">Sin Equipo</p>
-          <p id="stat-disponibles" class="text-2xl font-bold text-amber-600">0</p>
-        </div>
-      </section>
+      </div>
 
-      <!-- TARJETAS DE EQUIPOS -->
-      <section>
-        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">Equipos Configurados</h3>
+      <!-- VISTA 2: EQUIPOS -->
+      <div id="view-equipos" class="tab-view hidden space-y-4">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">Todos los Equipos Configurados</h3>
         <div id="grid-grupos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      </section>
+      </div>
 
-      <!-- SECCIÓN DE CASAS CELEBRANDO (SI EXISTE) -->
-      <section id="sec-casas-resultado" class="hidden space-y-3 pt-4 border-t border-slate-200">
+      <!-- VISTA 3: CASAS -->
+      <div id="view-casas" class="tab-view hidden space-y-4">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-2">
             <i data-lucide="home" class="w-4 h-4"></i> Distribución de Celebración por las Casas
@@ -109,14 +142,15 @@
           <button onclick="UI.limpiarCasas()" class="text-xs text-rose-600 hover:underline">Limpiar Casas</button>
         </div>
         <div id="grid-casas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      </section>
+      </div>
+
     </main>
   </div>
 
   <!-- ==================== MODALES ==================== -->
   <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
 
-    <!-- 1. MODAL REGISTRO DE HERMANOS CON SEXO Y MATRIMONIO -->
+    <!-- 1. REGISTRO HERMANOS -->
     <div id="modal-hermanos" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden hidden flex-col max-h-[90vh]">
       <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
         <h3 class="text-base font-bold">Registro de Hermanos y Matrimonios</h3>
@@ -158,50 +192,65 @@
       </div>
     </div>
 
-    <!-- 2. MODAL CREAR EQUIPO -->
+    <!-- 2. CREAR / EDITAR EQUIPO -->
     <div id="modal-grupo" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden hidden flex-col max-h-[90vh]">
       <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-        <h3 class="text-base font-bold">Crear Equipo de Preparación</h3>
+        <h3 id="modal-grupo-title" class="text-base font-bold">Crear Equipo</h3>
         <button onclick="UI.closeModals()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
       <form id="form-grupo" class="p-6 space-y-4">
-        <input type="text" id="nombre-grupo" placeholder="Ej: Equipo 1 (Palabra / Tema / Personaje)" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2">
+        <input type="hidden" id="edit-grupo-id" value="">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Equipo:</label>
+          <input type="text" id="nombre-grupo" placeholder="Ej: Equipo 1 / Preparación Palabra" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2">
+        </div>
         
-        <select id="tipo-grupo" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2">
-          <option value="preparacion">Preparación (Palabra / Tema / Personaje)</option>
-          <option value="convivencia">Convivencia / Logística</option>
-        </select>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Razón / Tipo de Grupo:</label>
+          <select id="tipo-grupo" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2">
+            <option value="preparacion">Preparación (Palabra / Tema / Personaje)</option>
+            <option value="eucaristia">Eucaristía (Excepcional - No bloquea al hermano)</option>
+            <option value="convivencia">Convivencia / Logística</option>
+          </select>
+        </div>
 
-        <div class="flex justify-between items-center pt-2">
-          <label class="text-xs font-bold text-slate-700 uppercase">Selección de Integrantes</label>
-          <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
-            <button type="button" id="tab-manual" onclick="UI.toggleModoEquipo('manual')" class="px-3 py-1 rounded bg-white text-indigo-600 shadow-sm">Manual</button>
-            <button type="button" id="tab-auto" onclick="UI.toggleModoEquipo('auto')" class="px-3 py-1 rounded text-slate-600">Aleatorio</button>
+        <!-- MODO DE SELECCIÓN (SOLO SI SE CREA UNO NUEVO) -->
+        <div id="sec-grupo-modos" class="space-y-3">
+          <div class="flex justify-between items-center pt-2">
+            <label class="text-xs font-bold text-slate-700 uppercase">Selección de Integrantes</label>
+            <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+              <button type="button" id="tab-manual" onclick="UI.toggleModoEquipo('manual')" class="px-3 py-1 rounded bg-white text-indigo-600 shadow-sm">Manual</button>
+              <button type="button" id="tab-auto" onclick="UI.toggleModoEquipo('auto')" class="px-3 py-1 rounded text-slate-600">Sorteo Aleatorio</button>
+            </div>
           </div>
-        </div>
 
-        <div id="sec-equipo-manual">
-          <p class="text-[11px] text-slate-500 mb-2">Nota: Al marcar a un hermano/a casado/a, su cónyuge se vinculará automáticamente.</p>
-          <div id="miembros-checkboxes" class="max-h-44 overflow-y-auto space-y-1 p-2 bg-slate-50 rounded-lg border border-slate-200"></div>
-        </div>
+          <div id="sec-equipo-manual">
+            <p class="text-[11px] text-slate-500 mb-2">Nota: Al marcar a un hermano/a casado/a, su cónyuge se vinculará automáticamente.</p>
+            <div id="miembros-checkboxes" class="max-h-44 overflow-y-auto space-y-1 p-2 bg-slate-50 rounded-lg border border-slate-200"></div>
+          </div>
 
-        <div id="sec-equipo-auto" class="hidden space-y-3 bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
-          <p class="text-xs text-indigo-900">Selecciona cuántos <strong>hermanos/matrimonios</strong> sumar al azar entre los no asignados.</p>
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-xs text-slate-600">Disponibles: <strong id="cant-disponibles" class="text-indigo-600">0</strong></span>
-            <input type="number" id="cant-aleatorios" min="1" placeholder="Cantidad aproximada" class="w-32 text-sm bg-white border border-slate-300 rounded-lg px-3 py-1.5">
+          <div id="sec-equipo-auto" class="hidden space-y-3 bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
+            <p class="text-xs text-indigo-900">Divide a <strong>toda la comunidad disponible</strong> repartiendo equitativamente y sin separar matrimonios.</p>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs text-slate-600">Disponibles: <strong id="cant-disponibles" class="text-indigo-600">0</strong></span>
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-slate-700">N° de Equipos a generar:</label>
+                <input type="number" id="cant-equipos-auto" min="2" value="2" class="w-16 text-sm bg-white border border-slate-300 rounded-lg px-2 py-1 text-center font-bold">
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="UI.closeModals()" class="px-4 py-2 text-xs font-medium text-slate-600">Cancelar</button>
-          <button type="submit" class="px-4 py-2 text-xs font-bold bg-indigo-600 text-white rounded-lg">Crear Equipo</button>
+          <button type="submit" class="px-4 py-2 text-xs font-bold bg-indigo-600 text-white rounded-lg" id="btn-guardar-grupo">Guardar Equipo</button>
         </div>
       </form>
     </div>
 
-    <!-- 3. MODAL CELEBRACIÓN POR LAS CASAS -->
+    <!-- 3. CELEBRACIÓN POR LAS CASAS -->
     <div id="modal-casas" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden hidden flex-col">
       <div class="px-6 py-4 bg-emerald-800 text-white flex justify-between items-center">
         <h3 class="text-base font-bold">Celebración por las Casas</h3>
@@ -210,7 +259,7 @@
 
       <form id="form-casas" class="p-6 space-y-4">
         <p class="text-xs text-slate-600">
-          Selecciona el equipo que preparó la celebración. Cada hermano del equipo asumirá la responsabilidad de una casa (aquí los esposos se dividen para liderar casas distintas) y el resto de la comunidad se repartirá equitativamente.
+          Selecciona el equipo que preparó la celebración. Cada hermano del equipo asumirá la responsabilidad de una casa (los matrimonios se dividen para liderar casas distintas) y el resto de la comunidad se repartirá equitativamente.
         </p>
 
         <div>
