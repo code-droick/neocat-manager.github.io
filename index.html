@@ -4,96 +4,119 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Preparaciones de la Comunidad</title>
-  <link rel="stylesheet" href="styles.css">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Estilos Personalizados -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex">
 
   <!-- SIDEBAR DE NAVEGACIÓN -->
-  <aside class="sidebar">
-    <h2>Comunidad</h2>
+  <aside class="sidebar w-64 bg-slate-900 text-white p-6 flex flex-col gap-6 shrink-0">
+    <h2 class="text-xl font-bold tracking-wide border-b border-slate-700 pb-4">Comunidad</h2>
     <nav>
-      <ul>
-        <li><a href="#" class="nav-link active" onclick="cambiarPestana('preparacion', event)">Nueva Preparación</a></li>
-        <li><a href="#" class="nav-link" onclick="cambiarPestana('historial', event)">Historial de Preparaciones</a></li>
-        <li><a href="#" class="nav-link" onclick="cambiarPestana('estadisticas', event)">Estadísticas & Insights</a></li>
+      <ul class="space-y-2">
+        <li>
+          <a href="#" class="nav-link block px-4 py-2.5 rounded-lg font-medium transition text-slate-300 hover:bg-slate-800 active-tab" onclick="cambiarPestana('preparacion', event)">
+            Nueva Preparación
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link block px-4 py-2.5 rounded-lg font-medium transition text-slate-300 hover:bg-slate-800" onclick="cambiarPestana('historial', event)">
+            Historial
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link block px-4 py-2.5 rounded-lg font-medium transition text-slate-300 hover:bg-slate-800" onclick="cambiarPestana('estadisticas', event)">
+            Estadísticas & Insights
+          </a>
+        </li>
       </ul>
     </nav>
   </aside>
 
   <!-- CONTENIDO PRINCIPAL -->
-  <main class="main-content">
+  <main class="main-content flex-1 p-8 overflow-y-auto">
 
     <!-- PESTAÑA 1: NUEVA PREPARACIÓN -->
-    <section id="preparacion" class="tab-content active">
-      <h1>Crear Nueva Preparación</h1>
-      <div class="card">
-        <form id="form-preparacion" onsubmit="guardarPreparacion(event)">
+    <section id="preparacion" class="tab-content app-section">
+      <h1 class="text-2xl font-bold mb-6 text-slate-800">Crear Nueva Preparación</h1>
+      <div class="modal-card !max-w-2xl">
+        <form id="form-preparacion" onsubmit="guardarPreparacion(event)" class="space-y-5">
           
-          <div class="form-group">
-            <label>Número de Equipo (Asignado Automáticamente):</label>
-            <input type="text" id="equipo-numero" disabled style="background-color: #f1f5f9; font-weight: bold;">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-slate-700">Número de Equipo (Asignado Automáticamente):</label>
+            <input type="text" id="equipo-numero" disabled class="input-field bg-slate-200 font-bold text-slate-600 cursor-not-allowed">
           </div>
 
-          <div class="form-group">
-            <label>Modalidad a Preparar (Selecciona una):</label>
-            <div class="radio-group">
-              <label><input type="radio" name="modalidad" value="Tema" checked onclick="actualizarModalidad()"> Tema</label>
-              <label><input type="radio" name="modalidad" value="Palabra" onclick="actualizarModalidad()"> Palabra</label>
-              <label><input type="radio" name="modalidad" value="Personaje" onclick="actualizarModalidad()"> Personaje</label>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-slate-700">Modalidad a Preparar:</label>
+            <div class="radio-group flex gap-6 mt-2">
+              <label class="inline-flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="modalidad" value="Tema" checked onclick="actualizarModalidad()" class="accent-indigo-600"> Tema
+              </label>
+              <label class="inline-flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="modalidad" value="Palabra" onclick="actualizarModalidad()" class="accent-indigo-600"> Palabra
+              </label>
+              <label class="inline-flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="modalidad" value="Personaje" onclick="actualizarModalidad()" class="accent-indigo-600"> Personaje
+              </label>
             </div>
           </div>
 
-          <div class="form-group">
-            <label id="label-detalle">Detalle del Tema:</label>
-            <input type="text" id="input-detalle" placeholder="Ej. La Lectura Creyente de la Realidad" required>
+          <div>
+            <label id="label-detalle" class="block text-sm font-medium mb-1 text-slate-700">Detalle del Tema:</label>
+            <input type="text" id="input-detalle" placeholder="Ej. La Lectura Creyente de la Realidad" required class="input-field">
           </div>
 
-          <div class="form-group">
-            <label>Seleccionar Integrante de la Comunidad:</label>
-            <div style="display: flex; gap: 10px;">
-              <select id="select-integrantes">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-slate-700">Seleccionar Integrante de la Comunidad:</label>
+            <div class="flex gap-3 mt-1">
+              <select id="select-integrantes" class="input-field flex-1">
                 <!-- Se llena dinámicamente desde JS -->
               </select>
-              <button type="button" onclick="agregarIntegrante()">Añadir</button>
+              <button type="button" onclick="agregarIntegrante()" class="btn-secondary">Añadir</button>
             </div>
           </div>
 
-          <div class="form-group">
-            <label>Integrantes Asignados al Equipo:</label>
-            <table>
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Rol</th>
-                  <th>Acción</th>
-                </tr>
-              </thead>
-              <tbody id="tabla-integrantes-equipo">
-                <!-- Integrantes agregados dinámicamente -->
-              </tbody>
-            </table>
+          <div>
+            <label class="block text-sm font-medium mb-2 text-slate-700">Integrantes Asignados al Equipo:</label>
+            <div class="border border-slate-200 rounded-lg overflow-hidden">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="p-3">Nombre</th>
+                    <th class="p-3">Rol</th>
+                    <th class="p-3 text-right">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-integrantes-equipo" class="divide-y divide-slate-100">
+                  <!-- Integrantes agregados dinámicamente -->
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <button type="submit" style="width: 100%; margin-top: 15px;">Guardar y Finalizar Preparación</button>
+          <button type="submit" class="btn-primary w-full justify-center mt-4">Guardar y Finalizar Preparación</button>
         </form>
       </div>
     </section>
 
     <!-- PESTAÑA 2: HISTORIAL DE PREPARACIONES -->
-    <section id="historial" class="tab-content">
-      <h1>Historial de Preparaciones</h1>
-      <div class="card">
-        <table>
-          <thead>
+    <section id="historial" class="tab-content app-section hidden">
+      <h1 class="text-2xl font-bold mb-6 text-slate-800">Historial de Preparaciones</h1>
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
             <tr>
-              <th>Equipo #</th>
-              <th>Tipo</th>
-              <th>Detalle</th>
-              <th>Integrantes</th>
-              <th>Fecha</th>
+              <th class="p-3">Equipo #</th>
+              <th class="p-3">Tipo</th>
+              <th class="p-3">Detalle</th>
+              <th class="p-3">Integrantes</th>
+              <th class="p-3">Fecha</th>
             </tr>
           </thead>
-          <tbody id="tabla-historial">
+          <tbody id="tabla-historial" class="divide-y divide-slate-100">
             <!-- Se llena dinámicamente desde JS -->
           </tbody>
         </table>
@@ -101,37 +124,37 @@
     </section>
 
     <!-- PESTAÑA 3: ESTADÍSTICAS & INSIGHTS -->
-    <section id="estadisticas" class="tab-content">
-      <h1>Estadísticas & Insights</h1>
+    <section id="estadisticas" class="tab-content app-section hidden">
+      <h1 class="text-2xl font-bold mb-6 text-slate-800">Estadísticas & Insights</h1>
       
       <div class="grid-stats">
         <div class="stat-card">
           <div class="num" id="stat-total">0</div>
-          <div>Total Preparaciones</div>
+          <div class="text-xs text-slate-500 font-medium uppercase mt-1">Total Preparaciones</div>
         </div>
         <div class="stat-card">
           <div class="num" id="stat-temas">0</div>
-          <div>Temas</div>
+          <div class="text-xs text-slate-500 font-medium uppercase mt-1">Temas</div>
         </div>
         <div class="stat-card">
           <div class="num" id="stat-palabras">0</div>
-          <div>Palabras</div>
+          <div class="text-xs text-slate-500 font-medium uppercase mt-1">Palabras</div>
         </div>
         <div class="stat-card">
           <div class="num" id="stat-personajes">0</div>
-          <div>Personajes</div>
+          <div class="text-xs text-slate-500 font-medium uppercase mt-1">Personajes</div>
         </div>
       </div>
 
-      <div class="card">
-        <h3>💡 Insights de la Comunidad</h3>
-        <p id="insight-texto" style="margin-top: 10px; color: #475569;">No hay suficientes datos registrados para generar insights.</p>
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mt-6">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">💡 Insights de la Comunidad</h3>
+        <p id="insight-texto" class="mt-2 text-slate-600 text-sm">No hay suficientes datos registrados para generar insights.</p>
       </div>
     </section>
 
   </main>
 
-  <!-- ARCHIVO DE LÓGICA VINCULADO -->
+  <!-- ARCHIVO DE LÓGICA VINCULADO CORRECTAMENTE -->
   <script src="script.js"></script>
 </body>
 </html>
