@@ -188,18 +188,28 @@ function importarJSON(e) {
 }
 
 // ==========================================
-// PESTAÑA 2: ESTRUCTURACIÓN DE GRUPOS
+// PESTAÑA 2: ESTRUCTURACIÓN DE GRUPOS (CORREGIDA)
 // ==========================================
+
 function generarGruposAzar() {
-  const prefijo = document.getElementById('azar-prefijo').value.trim() || 'Equipo';
-  const numGrupos = parseInt(document.getElementById('azar-cantidad').value) || 3;
+  const prefijoInput = document.getElementById('azar-prefijo');
+  const cantidadInput = document.getElementById('azar-cantidad');
 
-  if (integrantesComunidad.length === 0) return alert('No hay integrantes en la comunidad.');
+  const prefijo = prefijoInput ? prefijoInput.value.trim() : 'Equipo';
+  const numGrupos = cantidadInput ? parseInt(cantidadInput.value) : 3;
 
-  const mezclar = [...integrantesComunidad].sort(() => 0.5 - Math.random());
+  if (!integrantesComunidad || integrantesComunidad.length === 0) {
+    alert('No hay integrantes en la comunidad para armar grupos.');
+    return;
+  }
+
+  // Copia y mezcla aleatoria del padrón
+  const mezcla = [...integrantesComunidad].sort(() => Math.random() - 0.5);
   gruposGenerados = [];
 
-  for (let i = 0; i < numGrupos; i++) {
+  // 1. Inicializar estructuras de grupo
+  const limiteGrupos = Math.min(numGrupos, mezcla.length);
+  for (let i = 0; i < limiteGrupos; i++) {
     gruposGenerados.push({
       id: Date.now() + i,
       nombre: `${prefijo} ${i + 1}`,
@@ -208,67 +218,93 @@ function generarGruposAzar() {
     });
   }
 
-  mezclar.forEach((persona, index) => {
-    gruposGenerados[index % numGrupos].integrantes.push(persona);
+  // 2. Repartir hermanos equitativamente
+  mezcla.forEach((persona, index) => {
+    const grupoDestino = gruposGenerados[index % limiteGrupos];
+    grupoDestino.integrantes.push({...persona});
   });
 
+  // 3. Renderizar y sincronizar con los desplegables
   renderizarGrupos();
   actualizarSelectsGrupo();
 }
 
 function generarGruposCasas() {
-  if (historialPreparaciones.length === 0) {
-    return alert('Para dividir por Casas necesitas al menos 1 preparación previa guardada (para tomar a los preparadores como guías).');
+  if (!historialPreparaciones || historialPreparaciones.length === 0) {
+    alert('Para dividir por Casas necesitas al menos 1 preparación previa guardada.');
+    return;
   }
 
   const ultimaPrep = historialPreparaciones[historialPreparaciones.length - 1];
-  const guias = ultimaPrep.integrantes;
-  const resto = integrantesComunidad.filter(h => !guias.some(g => g.id === h.id));
-  const mezclarResto = [...resto].sort(() => 0.5 - Math.random());
+  const guias = ultimaPrep.integrantes || [];
+
+  if (guias.length === 0) {
+    alert('La última preparación no tiene integrantes registrados.');
+    return;
+  }
+
+  const guiasIds = new Set(guias.map(g => g.id));
+  const resto = integrantesComunidad.filter(h => !guiasIds.has(h.id));
+  const mezclaResto = [...resto].sort(() => Math.random() - 0.5);
 
   gruposGenerados = guias.map((guia, i) => ({
     id: Date.now() + i,
     nombre: `Casa ${i + 1} (${guia.nombre})`,
     estado: 'Preparando',
-    integrantes: [guia]
+    integrantes: [{...guia}]
   }));
 
-  mezclarResto.forEach((persona, index) => {
-    gruposGenerados[index % gruposGenerados.length].integrantes.push(persona);
+  mezclaResto.forEach((persona, index) => {
+    const grupoDestino = gruposGenerados[index % gruposGenerados.length];
+    grupoDestino.integrantes.push({...persona});
   });
 
   renderizarGrupos();
   actualizarSelectsGrupo();
 }
 
-function cambiarEstadoGrupo(grupoId, nuevoEstado) {
-  const g = gruposGenerados.find(item => item.id === grupoId);
-  if (g) g.estado = nuevoEstado;
-  renderizarGrupos();
-}
-
-function quitarIntegranteGrupo(grupoId, personaId) {
-  const g = gruposGenerados.find(item => item.id === grupoId);
-  if (g) {
-    g.integrantes = g.integrantes.filter(p => p.id !== personaId);
-    renderizarGrupos();
-  }
-}
-
 function agregarHermanoAGrupoManual() {
-  const grupoId = parseInt(document.getElementById('select-grupo-destino').value);
-  const hermanoId = parseInt(document.getElementById('select-hermano-agregar').value);
+  const selectGrupo = document.getElementById('select-grupo-destino');
+  const selectHermano = document.getElementById('select-hermano-agregar');
 
-  if (!grupoId || !hermanoId) return;
+  if (!selectGrupo || !selectHermano) return;
+
+  const grupoId = parseInt(selectGrupo.value);
+  const hermanoId = parseInt(selectHermano.value);
+
+  if (!grupoId) return alert('Por favor selecciona un grupo destino.');
+  if (!hermanoId) return alert('Por favor selecciona un hermano para añadir.');
 
   const grupo = gruposGenerados.find(g => g.id === grupoId);
   const hermano = integrantesComunidad.find(h => h.id === hermanoId);
 
   if (grupo && hermano) {
-    if (grupo.integrantes.some(i => i.id === hermano.id)) {
-      return alert('Este hermano ya está en el grupo.');
+    // Validar si el hermano ya está en este grupo
+    const yaExiste = grupo.integrantes.some(i => i.id === hermano.id);
+    if (yaExiste) {
+      alert(`${hermano.nombre} ya forma parte de ${grupo.nombre}.`);
+      return;
     }
-    grupo.integrantes.push(hermano);
+
+    grupo.integrantes.push({...hermano});
+    renderizarGrupos();
+    actualizarSelectsGrupo();
+  }
+}
+
+function quitarIntegranteGrupo(grupoId, personaId) {
+  const grupo = gruposGenerados.find(g => g.id === grupoId);
+  if (grupo) {
+    grupo.integrantes = grupo.integrantes.filter(p => p.id !== personaId);
+    renderizarGrupos();
+    actualizarSelectsGrupo();
+  }
+}
+
+function cambiarEstadoGrupo(grupoId, nuevoEstado) {
+  const grupo = gruposGenerados.find(g => g.id === grupoId);
+  if (grupo) {
+    grupo.estado = nuevoEstado;
     renderizarGrupos();
   }
 }
@@ -302,10 +338,17 @@ function actualizarSelectsGrupo() {
 
 function renderizarGrupos() {
   const container = document.getElementById('contenedor-grupos');
+  if (!container) return;
+
   container.innerHTML = '';
 
   if (gruposGenerados.length === 0) {
-    container.innerHTML = '<p class="text-slate-400 italic text-sm col-span-3 text-center py-8">No hay grupos creados. Usa los botones superiores para generarlos.</p>';
+    container.innerHTML = `
+      <div class="col-span-full text-center py-10 bg-white rounded-2xl border border-dashed border-slate-300">
+        <i class="fa-solid fa-users-slash text-3xl text-slate-300 mb-2"></i>
+        <p class="text-slate-500 text-sm font-medium">No hay grupos creados.</p>
+        <p class="text-xs text-slate-400">Genera grupos automáticos o añade personas manualmente.</p>
+      </div>`;
     return;
   }
 
@@ -314,12 +357,16 @@ function renderizarGrupos() {
     if (g.estado === 'Preparando') estadoColor = 'bg-amber-100 text-amber-800';
     if (g.estado === 'Preparado') estadoColor = 'bg-emerald-100 text-emerald-800';
 
-    const miembrosHtml = g.integrantes.map(i => `
-      <li class="flex justify-between items-center py-1 border-b border-slate-100 text-xs">
-        <span class="font-medium text-slate-700">${i.nombre} <span class="text-[10px] text-slate-400">(${i.rol})</span></span>
-        <button onclick="quitarIntegranteGrupo(${g.id}, ${i.id})" class="text-slate-300 hover:text-red-500 transition px-1"><i class="fa-solid fa-xmark"></i></button>
-      </li>
-    `).join('');
+    const miembrosHtml = g.integrantes.length > 0 
+      ? g.integrantes.map(i => `
+          <li class="flex justify-between items-center py-1.5 border-b border-slate-100 text-xs">
+            <span class="font-medium text-slate-700">${i.nombre} <span class="text-[10px] text-slate-400">(${i.rol})</span></span>
+            <button onclick="quitarIntegranteGrupo(${g.id}, ${i.id})" class="text-slate-300 hover:text-red-500 transition px-1" title="Quitar del grupo">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </li>
+        `).join('')
+      : '<li class="text-xs text-slate-400 italic py-2">Sin integrantes asignados</li>';
 
     container.innerHTML += `
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex flex-col justify-between">
