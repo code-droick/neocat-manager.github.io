@@ -1,16 +1,26 @@
-/**
- * ARCHIVO PRINCIPAL DE LÓGICA (JS ES6+)
- * Estructurado mediante servicios y controladores para desacoplar el estado de la vista.
- */
+// --- ESTADO DE LA APLICACIÓN ---
+const AppState = {
+  hermanos: [],
+  grupos: [],
 
-// --- 1. SERVICIO DE ALMACENAMIENTO (Patrón Repositorio) ---
+  init() {
+    this.hermanos = StorageService.get("hermanos", []);
+    this.grupos = StorageService.get("grupos", []);
+  },
+
+  save() {
+    StorageService.set("hermanos", this.hermanos);
+    StorageService.set("grupos", this.grupos);
+  }
+};
+
+// --- SERVICIO DE ARQUITECTURA / ALMACENAMIENTO (PERSISTENCIA Y JSON) ---
 class StorageService {
   static get(key, defaultValue = []) {
     try {
       const data = localStorage.getItem(`nc_${key}`);
       return data ? JSON.parse(data) : defaultValue;
     } catch (e) {
-      console.error(`Error leyendo ${key} desde localStorage:`, e);
       return defaultValue;
     }
   }
@@ -19,362 +29,312 @@ class StorageService {
     try {
       localStorage.setItem(`nc_${key}`, JSON.stringify(value));
     } catch (e) {
-      console.error(`Error guardando ${key} en localStorage:`, e);
+      console.error(`Error guardando ${key}:`, e);
     }
+  }
+
+  // Exportar el JSON como archivo local
+  static exportJSON() {
+    if (AppState.hermanos.length === 0 && AppState.grupos.length === 0) {
+      alert("La base de datos está vacía. Registra datos antes de exportar.");
+      return;
+    }
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(AppState, null, 2));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `comunidad_backup_${new Date().toISOString().split("T")[0]}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  }
+
+  // Cargar un archivo JSON externo
+  static importJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        if (Array.isArray(importedData.hermanos) && Array.isArray(importedData.grupos)) {
+          AppState.hermanos = importedData.hermanos;
+          AppState.grupos = importedData.grupos;
+          AppState.save();
+          UI.renderAll();
+          alert("¡Base de datos importada exitosamente!");
+        } else {
+          alert("Formato no válido. El JSON debe incluir arreglos de 'hermanos' y 'grupos'.");
+        }
+      } catch (err) {
+        alert("Error al leer el archivo JSON.");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = ""; // Limpiar input
   }
 }
 
-// --- 2. ESTADO GLOBAL DE LA APLICACIÓN ---
-const AppState = {
-  hermanos: StorageService.get("hermanos"),
-  grupos: StorageService.get("grupos"),
-  preparaciones: StorageService.get("preparaciones"),
-  celebraciones: StorageService.get("celebraciones"),
+// --- INTERFAZ DE USUARIO (UI) ---
+let modoCreacionEquipo = "manual";
 
-  save() {
-    StorageService.set("hermanos", this.hermanos);
-    StorageService.set("grupos", this.grupos);
-    StorageService.set("preparaciones", this.preparaciones);
-    StorageService.set("celebraciones", this.celebraciones);
-  }
-};
-
-// --- 3. UTILIDADES ---
-const Utils = {
-  parseDateLocal(dateStr) {
-    if (!dateStr) return new Date();
-    const [year, month, day] = dateStr.split("-").map(Number);
-    return new Date(year, month - 1, day);
-  },
-
-  formatDate(dateStr) {
-    const d = this.parseDateLocal(dateStr);
-    return d.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
-  }
-};
-
-// --- 4. CONTROLADOR DE INTERFAZ DE USUARIO (UI) ---
 const UI = {
-  init() {
-    this.setupNavigation();
-    this.setupFormListeners();
-    this.renderAll();
+  renderAll() {
+    this.renderStats();
+    this.renderGrupos();
+    this.renderListaHermanos();
     lucide.createIcons();
   },
 
-  setupNavigation() {
-    document.querySelectorAll(".nav-link").forEach(link => {
-      link.addEventListener("click", (e) => {
-        e.preventDefault();
-        const targetId = link.getAttribute("href").substring(1);
+  renderStats() {
+    const total = AppState.hermanos.length;
+    const asignadosIds = new Set(AppState.grupos.flatMap(g => g.miembros.map(m => m.id)));
+    const asignadosCount = AppState.hermanos.filter(h => asignadosIds.has(h.id)).length;
+    const disponiblesCount = total - asignadosCount;
 
-        document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("bg-slate-800", "text-white"));
-        link.classList.add("bg-slate-800", "text-white");
-
-        document.querySelectorAll(".app-section").forEach(sec => sec.classList.add("hidden"));
-        document.getElementById(`sec-${targetId}`).classList.remove("hidden");
-      });
-    });
+    document.getElementById("stat-total-hermanos").textContent = total;
+    document.getElementById("stat-asignados").textContent = asignadosCount;
+    document.getElementById("stat-disponibles").textContent = disponiblesCount;
   },
 
-  openModal(modalId) {
-    document.getElementById("modal-backdrop").classList.remove("hidden");
-    document.getElementById(modalId).classList.remove("hidden");
-  },
+  renderListaHermanos(filterQuery = "") {
+    const container = document.getElementById("lista-hermanos-container");
+    const counter = document.getElementById("cnt-lista-hermanos");
+    const asignadosIds = new Set(AppState.grupos.flatMap(g => g.miembros.map(m => m.id)));
 
-  closeModals() {
-    document.getElementById("modal-backdrop").classList.add("hidden");
-    document.querySelectorAll(".modal-card").forEach(m => m.classList.add("hidden"));
-  },
+    const filtered = AppState.hermanos.filter(h => 
+      `${h.nombre} ${h.apellido}`.toLowerCase().includes(filterQuery.toLowerCase())
+    );
 
-  openModalGrupo() {
-    const container = document.getElementById("miembros-checkboxes");
-    container.innerHTML = AppState.hermanos.map(h => `
-      <label class="flex items-center gap-2 p-1.5 hover:bg-slate-100 rounded text-sm cursor-pointer">
-        <input type="checkbox" value="${h.id}" class="rounded text-indigo-600 focus:ring-indigo-500">
-        <span>${h.nombre} ${h.apellido}</span>
-      </label>
-    `).join("") || '<p class="text-xs text-slate-400 p-2">Registra hermanos primero.</p>';
-    this.openModal("modal-grupo");
-  },
+    counter.textContent = filtered.length;
 
-  openModalPreparacion() {
-    const select = document.getElementById("select-grupo-prep");
-    select.innerHTML = '<option value="">Seleccionar Equipo a Cargo...</option>' +
-      AppState.grupos.map(g => `<option value="${g.id}">${g.nombre}</option>`).join("");
-    this.openModal("modal-preparacion");
-  },
-
-  openModalCelebracion() {
-    const select = document.getElementById("select-preparacion-cel");
-    select.innerHTML = '<option value="">Seleccionar evento preparado...</option>' +
-      AppState.preparaciones.map(p => `<option value="${p.id}">${p.tipo.toUpperCase()} - ${Utils.formatDate(p.fecha)}</option>`).join("");
-    
-    document.getElementById("asistentes-checkboxes").innerHTML = '<p class="text-xs text-slate-400 p-2 col-span-2">Selecciona un evento arriba.</p>';
-    this.openModal("modal-celebracion");
-  },
-
-  renderAll() {
-    this.renderHermanos();
-    this.renderGrupos();
-    this.renderPreparaciones();
-    this.renderCelebraciones();
-    this.renderCalendario();
-    this.renderEstadisticas();
-  },
-
-  renderHermanos() {
-    const container = document.getElementById("lista-hermanos");
-    if (AppState.hermanos.length === 0) {
-      container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">No hay hermanos registrados.</div>`;
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-6 text-slate-400 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+          <p class="text-xs">No hay hermanos registrados o no coinciden con la búsqueda.</p>
+        </div>
+      `;
       return;
     }
 
-    container.innerHTML = AppState.hermanos.map(h => `
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full ${h.sexo === 'F' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'} flex items-center justify-center font-bold text-sm">
-            ${h.nombre[0]}${h.apellido[0]}
+    container.innerHTML = filtered.map(h => {
+      const estaAsignado = asignadosIds.has(h.id);
+      const iniciales = `${h.nombre.charAt(0)}${h.apellido.charAt(0)}`.toUpperCase();
+
+      return `
+        <div class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200/60 transition">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
+              ${iniciales}
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-800">${h.nombre} ${h.apellido}</p>
+              <span class="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full ${estaAsignado ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${estaAsignado ? 'En Equipo' : 'Sin Equipo'}
+              </span>
+            </div>
           </div>
-          <div>
-            <h4 class="font-bold text-slate-800">${h.nombre} ${h.apellido}</h4>
-            <span class="inline-block mt-0.5 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${
-              h.rol === 'responsable' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'
-            }">${h.rol}</span>
-          </div>
+          <button onclick="UI.eliminarHermano(${h.id})" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition" title="Eliminar Hermano">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
         </div>
-      </div>
-    `).join("");
+      `;
+    }).join("");
+
+    lucide.createIcons();
+  },
+
+  filterHermanos(query) {
+    this.renderListaHermanos(query);
+  },
+
+  eliminarHermano(id) {
+    if (!confirm("¿Deseas eliminar este hermano? También será removido de los equipos a los que pertenezca.")) return;
+
+    AppState.hermanos = AppState.hermanos.filter(h => h.id !== id);
+    // Limpiar de los grupos
+    AppState.grupos.forEach(g => {
+      g.miembros = g.miembros.filter(m => m.id !== id);
+    });
+
+    AppState.save();
+    this.renderAll();
   },
 
   renderGrupos() {
-    const container = document.getElementById("lista-grupos");
+    const container = document.getElementById("grid-grupos");
+
     if (AppState.grupos.length === 0) {
-      container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">No hay equipos creados.</div>`;
+      container.innerHTML = `
+        <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center text-slate-400">
+          <p class="text-sm font-medium">No se han creado equipos aún.</p>
+        </div>
+      `;
       return;
     }
 
     container.innerHTML = AppState.grupos.map(g => `
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex justify-between items-start mb-3">
-          <h4 class="font-bold text-slate-900">${g.nombre}</h4>
-          <span class="text-xs font-medium px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-md">${g.tipo}</span>
-        </div>
-        <p class="text-xs font-semibold text-slate-400 mb-2">INTEGRANTES (${g.miembros.length}):</p>
-        <div class="flex flex-wrap gap-1">
-          ${g.miembros.map(m => `<span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-md">${m.nombre} ${m.apellido}</span>`).join("")}
-        </div>
-      </div>
-    `).join("");
-  },
-
-  renderPreparaciones() {
-    const container = document.getElementById("lista-preparaciones");
-    if (AppState.preparaciones.length === 0) {
-      container.innerHTML = `<div class="p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">No hay preparaciones litúrgicas agendadas.</div>`;
-      return;
-    }
-
-    container.innerHTML = AppState.preparaciones.map(p => {
-      const grupo = AppState.grupos.find(g => g.id === p.grupoId);
-      return `
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg font-bold text-xs uppercase text-center w-16">
-              ${p.tipo.substring(0, 4)}
-            </div>
+      <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 flex flex-col justify-between space-y-4">
+        <div>
+          <div class="flex justify-between items-start mb-2">
             <div>
-              <h4 class="font-bold text-slate-800">${p.tipo.toUpperCase()}</h4>
-              <p class="text-xs text-slate-500">Fecha: ${Utils.formatDate(p.fecha)} | Equipo: <span class="font-semibold text-slate-700">${grupo ? grupo.nombre : 'N/A'}</span></p>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                ${g.tipo === 'preparacion' ? 'Liturgia' : 'Limpieza'}
+              </span>
+              <h4 class="font-bold text-slate-900 text-sm mt-1">${g.nombre}</h4>
+            </div>
+            <button onclick="UI.eliminarGrupo(${g.id})" class="text-slate-300 hover:text-rose-600 transition">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+          
+          <div class="space-y-1.5 mt-3">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase">Integrantes (${g.miembros.length})</p>
+            <div class="flex flex-wrap gap-1">
+              ${g.miembros.map(m => `
+                <span class="text-xs bg-slate-50 border border-slate-200 text-slate-700 px-2 py-1 rounded-md font-medium">
+                  ${m.nombre} ${m.apellido}
+                </span>
+              `).join("")}
             </div>
           </div>
         </div>
-      `;
-    }).join("");
-  },
-
-  renderCelebraciones() {
-    const container = document.getElementById("lista-celebraciones");
-    if (AppState.celebraciones.length === 0) {
-      container.innerHTML = `<div class="p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">No hay registros de celebración.</div>`;
-      return;
-    }
-
-    container.innerHTML = AppState.celebraciones.map(c => `
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
-        <div>
-          <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">${c.tipo}</span>
-          <h4 class="font-bold text-slate-800">${Utils.formatDate(c.fecha)}</h4>
-        </div>
-        <div class="text-right">
-          <span class="text-lg font-bold text-slate-800">${c.asistentesIds.length}</span>
-          <span class="text-xs text-slate-400 block">asistentes</span>
-        </div>
       </div>
     `).join("");
+
+    lucide.createIcons();
   },
 
-  renderCalendario() {
-    const container = document.getElementById("calendario-eventos");
-    const mesActual = new Date().getMonth();
-
-    const eventos = [];
-
-    AppState.preparaciones.forEach(p => {
-      const f = Utils.parseDateLocal(p.fecha);
-      if (f.getMonth() === mesActual) {
-        eventos.push(`<div class="p-3 bg-indigo-50 border-l-4 border-indigo-600 rounded-r-lg text-sm text-indigo-900 font-medium">📅 [${p.tipo.toUpperCase()}] Preparación el ${Utils.formatDate(p.fecha)}</div>`);
-      }
-    });
-
-    AppState.hermanos.forEach(h => {
-      if (!h.nacimiento) return;
-      const f = Utils.parseDateLocal(h.nacimiento);
-      if (f.getMonth() === mesActual) {
-        eventos.push(`<div class="p-3 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg text-sm text-amber-900 font-medium">🎂 Cumpleaños de ${h.nombre} ${h.apellido} el día ${f.getDate()}</div>`);
-      }
-    });
-
-    container.innerHTML = eventos.length ? eventos.join("") : `<p class="text-slate-400 text-sm">No hay eventos ni cumpleaños para este mes.</p>`;
+  eliminarGrupo(id) {
+    if (!confirm("¿Deseas disolver este equipo?")) return;
+    AppState.grupos = AppState.grupos.filter(g => g.id !== id);
+    AppState.save();
+    this.renderAll();
   },
 
-  renderEstadisticas() {
-    const totalCels = AppState.celebraciones.length;
-    document.getElementById("stat-total-celebraciones").textContent = totalCels;
+  // --- CONTROL DE MODALES ---
+  openModal(modalId) {
+    document.getElementById("modal-container").classList.remove("hidden");
+    document.getElementById("modal-hermanos").classList.add("hidden");
+    document.getElementById("modal-grupo").classList.add("hidden");
 
-    if (totalCels === 0) return;
-
-    const totalAsistencias = AppState.celebraciones.reduce((acc, c) => acc + c.asistentesIds.length, 0);
-    document.getElementById("stat-promedio-global").textContent = (totalAsistencias / totalCels).toFixed(1);
-
-    const eucas = AppState.celebraciones.filter(c => c.tipo === "eucaristia");
-    const totalEucasAsist = eucas.reduce((acc, c) => acc + c.asistentesIds.length, 0);
-    document.getElementById("stat-promedio-eucarias").textContent = eucas.length ? (totalEucasAsist / eucas.length).toFixed(1) : 0;
-
-    const select = document.getElementById("select-stat-hermano");
-    select.innerHTML = '<option value="">Seleccionar hermano/a...</option>' +
-      AppState.hermanos.map(h => `<option value="${h.id}">${h.nombre} ${h.apellido}</option>`).join("");
+    document.getElementById(modalId).classList.remove("hidden");
+    document.getElementById(modalId).classList.add("flex");
   },
 
-  setupFormListeners() {
-    // Formulario Hermano
-    document.getElementById("form-hermano").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const nuevo = {
-        id: Date.now(),
-        nombre: document.getElementById("nombre-hermano").value.trim(),
-        apellido: document.getElementById("apellido-hermano").value.trim(),
-        sexo: document.getElementById("sexo-hermano").value,
-        nacimiento: document.getElementById("nacimiento-hermano").value,
-        rol: document.getElementById("rol-hermano").value
-      };
+  closeModals() {
+    document.getElementById("modal-container").classList.add("hidden");
+  },
 
-      AppState.hermanos.push(nuevo);
-      AppState.save();
-      this.renderAll();
-      this.closeModals();
-      e.target.reset();
-    });
+  openModalHermanos() {
+    this.renderListaHermanos();
+    this.openModal("modal-hermanos");
+  },
 
-    // Formulario Grupo
-    document.getElementById("form-grupo").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const selectedIds = Array.from(e.target.querySelectorAll("input[type='checkbox']:checked")).map(cb => Number(cb.value));
-      const miembros = AppState.hermanos.filter(h => selectedIds.includes(h.id));
+  openModalGrupo() {
+    this.toggleModoEquipo("manual");
+    const container = document.getElementById("miembros-checkboxes");
+    
+    container.innerHTML = AppState.hermanos.map(h => `
+      <label class="flex items-center gap-2.5 p-2 hover:bg-slate-100 rounded-lg text-xs cursor-pointer text-slate-700 font-medium">
+        <input type="checkbox" value="${h.id}" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+        <span>${h.nombre} ${h.apellido}</span>
+      </label>
+    `).join("") || '<p class="text-xs text-slate-400 p-3 text-center">Registra hermanos primero.</p>';
+    
+    this.openModal("modal-grupo");
+  },
 
-      AppState.grupos.push({
-        id: Date.now(),
-        nombre: document.getElementById("nombre-grupo").value.trim(),
-        tipo: document.getElementById("tipo-grupo").value,
-        miembros
-      });
+  toggleModoEquipo(modo) {
+    modoCreacionEquipo = modo;
+    const btnManual = document.getElementById("tab-manual");
+    const btnAuto = document.getElementById("tab-auto");
+    const secManual = document.getElementById("sec-equipo-manual");
+    const secAuto = document.getElementById("sec-equipo-auto");
 
-      AppState.save();
-      this.renderAll();
-      this.closeModals();
-      e.target.reset();
-    });
+    if (modo === "manual") {
+      btnManual.className = "px-3 py-1 rounded-md bg-white shadow-sm text-indigo-600 font-semibold";
+      btnAuto.className = "px-3 py-1 rounded-md text-slate-600";
+      secManual.classList.remove("hidden");
+      secAuto.classList.add("hidden");
+    } else {
+      btnAuto.className = "px-3 py-1 rounded-md bg-white shadow-sm text-indigo-600 font-semibold";
+      btnManual.className = "px-3 py-1 rounded-md text-slate-600";
+      secAuto.classList.remove("hidden");
+      secManual.classList.add("hidden");
 
-    // Cambio dinámico en tipo de preparación
-    document.getElementById("tipo-preparacion").addEventListener("change", (e) => {
-      const container = document.getElementById("campos-dinamicos-prep");
-      const val = e.target.value;
-      if (val === "eucaristia" || val === "palabra") {
-        container.innerHTML = `<input type="text" id="campo-lecturas" placeholder="Primera Lectura, Salmo, Evangelio..." class="input-field" required>`;
-      } else if (val === "convivencia") {
-        container.innerHTML = `<input type="text" id="campo-lugar" placeholder="Lugar de la convivencia" class="input-field" required>`;
-      } else {
-        container.innerHTML = "";
-      }
-    });
-
-    // Formulario Preparación
-    document.getElementById("form-preparacion").addEventListener("submit", (e) => {
-      e.preventDefault();
-      AppState.preparaciones.push({
-        id: Date.now(),
-        fecha: document.getElementById("fecha-preparacion").value,
-        tipo: document.getElementById("tipo-preparacion").value,
-        grupoId: Number(document.getElementById("select-grupo-prep").value)
-      });
-
-      AppState.save();
-      this.renderAll();
-      this.closeModals();
-      e.target.reset();
-    });
-
-    // Cambio en selección de preparación al tomar asistencia
-    document.getElementById("select-preparacion-cel").addEventListener("change", (e) => {
-      const container = document.getElementById("asistentes-checkboxes");
-      if (!e.target.value) return;
-
-      container.innerHTML = AppState.hermanos.map(h => `
-        <label class="flex items-center gap-2 p-1.5 hover:bg-slate-100 rounded text-sm cursor-pointer">
-          <input type="checkbox" value="${h.id}" class="rounded text-indigo-600 focus:ring-indigo-500">
-          <span>${h.nombre} ${h.apellido}</span>
-        </label>
-      `).join("");
-    });
-
-    // Formulario Celebración
-    document.getElementById("form-celebracion").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const prepId = Number(document.getElementById("select-preparacion-cel").value);
-      const prep = AppState.preparaciones.find(p => p.id === prepId);
-      const selectedIds = Array.from(document.querySelectorAll("#asistentes-checkboxes input[type='checkbox']:checked")).map(cb => Number(cb.value));
-
-      AppState.celebraciones.push({
-        id: Date.now(),
-        preparacionId: prepId,
-        tipo: prep ? prep.tipo : "General",
-        fecha: prep ? prep.fecha : new Date().toISOString().split("T")[0],
-        asistentesIds: selectedIds
-      });
-
-      AppState.save();
-      this.renderAll();
-      this.closeModals();
-      e.target.reset();
-    });
-
-    // Métricas por Hermano
-    document.getElementById("select-stat-hermano").addEventListener("change", (e) => {
-      const hId = Number(e.target.value);
-      const res = document.getElementById("resultado-stat-hermano");
-      if (!hId) {
-        res.innerHTML = "";
-        return;
-      }
-
-      const asistidas = AppState.celebraciones.filter(c => c.asistentesIds.includes(hId)).length;
-      const total = AppState.celebraciones.length;
-      const pct = total ? ((asistidas / total) * 100).toFixed(0) : 0;
-
-      res.innerHTML = `Asistencia registrada: <span class="font-bold text-indigo-600">${asistidas} de ${total}</span> celebraciones (${pct}%).`;
-    });
+      // Calcular hermanos no asignados
+      const asignadosIds = new Set(AppState.grupos.flatMap(g => g.miembros.map(m => m.id)));
+      const disponibles = AppState.hermanos.filter(h => !asignadosIds.has(h.id));
+      document.getElementById("cant-disponibles").textContent = disponibles.length;
+    }
   }
 };
 
-// --- INICIALIZACIÓN DE LA APP ---
-document.addEventListener("DOMContentLoaded", () => UI.init());
+// --- EVENT LISTENERS ---
+document.addEventListener("DOMContentLoaded", () => {
+  AppState.init();
+  UI.renderAll();
+
+  // Formulario Hermano
+  document.getElementById("form-hermano").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const nombre = document.getElementById("nombre-hermano").value.trim();
+    const apellido = document.getElementById("apellido-hermano").value.trim();
+
+    if (!nombre || !apellido) return;
+
+    AppState.hermanos.push({
+      id: Date.now(),
+      nombre,
+      apellido
+    });
+
+    AppState.save();
+    UI.renderAll();
+    
+    document.getElementById("form-hermano").reset();
+    document.getElementById("nombre-hermano").focus();
+  });
+
+  // Formulario Grupo
+  document.getElementById("form-grupo").addEventListener("submit", (e) => {
+    e.preventDefault();
+    let miembrosSeleccionados = [];
+
+    if (modoCreacionEquipo === "manual") {
+      const selectedIds = Array.from(e.target.querySelectorAll("input[type='checkbox']:checked")).map(cb => Number(cb.value));
+      miembrosSeleccionados = AppState.hermanos.filter(h => selectedIds.includes(h.id));
+    } else {
+      const asignadosIds = new Set(AppState.grupos.flatMap(g => g.miembros.map(m => m.id)));
+      const disponibles = AppState.hermanos.filter(h => !asignadosIds.has(h.id));
+      const cantidad = Number(document.getElementById("cant-aleatorios").value);
+
+      if (cantidad <= 0 || cantidad > disponibles.length) {
+        alert(`Ingresa una cantidad entre 1 y ${disponibles.length} disponibles.`);
+        return;
+      }
+
+      // Mezcla de Fisher-Yates / Random Shuffle
+      const mezclados = [...disponibles].sort(() => 0.5 - Math.random());
+      miembrosSeleccionados = mezclados.slice(0, cantidad);
+    }
+
+    if (miembrosSeleccionados.length === 0) {
+      alert("Selecciona al menos un hermano.");
+      return;
+    }
+
+    AppState.grupos.push({
+      id: Date.now(),
+      nombre: document.getElementById("nombre-grupo").value.trim(),
+      tipo: document.getElementById("tipo-grupo").value,
+      miembros: miembrosSeleccionados
+    });
+
+    AppState.save();
+    UI.renderAll();
+    UI.closeModals();
+    e.target.reset();
+  });
+});
