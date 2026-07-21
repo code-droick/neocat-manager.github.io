@@ -20,46 +20,46 @@ const integrantesComunidad = [
 let historialPreparaciones = [];
 let integrantesEquipoActual = [];
 
-// --- INICIALIZACIÓN DE LA APLICACIÓN ---
+// --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
   cargarSelectIntegrantes();
   actualizarNumeroEquipo();
-  actualizarEstadisticas();
   renderizarTablaEquipo();
   renderizarHistorial();
+  actualizarEstadisticas();
 });
 
-// --- NAVEGACIÓN Y PESTAÑAS ---
+// --- NAVEGACIÓN ENTRE PESTAÑAS ---
 function cambiarPestana(tabId, event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
   
-  // Ocultar todas las pestañas
-  document.querySelectorAll('.tab-content').forEach(el => {
-    el.classList.add('hidden');
-  });
+  // Ocultar todas las secciones
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
 
-  // Quitar estilo activo de los enlaces
+  // Desmarcar todos los enlaces
   document.querySelectorAll('.nav-link').forEach(el => {
-    el.classList.remove('bg-indigo-600', 'text-white');
-    el.classList.add('text-slate-300');
+    el.classList.remove('bg-indigo-600', 'text-white', 'shadow-md');
+    el.classList.add('text-slate-400');
   });
 
-  // Mostrar la pestaña seleccionada
+  // Mostrar sección seleccionada
   const targetSection = document.getElementById(tabId);
-  if (targetSection) {
-    targetSection.classList.remove('hidden');
-  }
+  if (targetSection) targetSection.classList.remove('hidden');
 
-  // Marcar enlace como activo
-  event.currentTarget.classList.add('bg-indigo-600', 'text-white');
-  event.currentTarget.classList.remove('text-slate-300');
+  // Activar botón del menú
+  const linkId = `link-${tabId}`;
+  const activeLink = document.getElementById(linkId);
+  if (activeLink) {
+    activeLink.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+    activeLink.classList.remove('text-slate-400');
+  }
 
   if (tabId === 'estadisticas') {
     actualizarEstadisticas();
   }
 }
 
-// --- GESTIÓN DEL FORMULARIO Y SELECCIÓN EXCLUSIVA ---
+// --- GESTIÓN DEL FORMULARIO Y MODALIDAD ---
 function actualizarModalidad() {
   const seleccion = document.querySelector('input[name="modalidad"]:checked').value;
   const label = document.getElementById('label-detalle');
@@ -84,7 +84,7 @@ function cargarSelectIntegrantes() {
   });
 }
 
-// --- LÓGICA DE ASIGNACIÓN Y REGLAS DE ROL/MATRIMONIO ---
+// --- ASIGNACIÓN DE INTEGRANTES & AUTO-INCLUSIÓN DE MATRIMONIO ---
 function agregarIntegrante() {
   const select = document.getElementById('select-integrantes');
   const personaId = parseInt(select.value);
@@ -94,16 +94,14 @@ function agregarIntegrante() {
   const persona = integrantesComunidad.find(p => p.id === personaId);
   if (!persona) return;
 
-  // Verificar duplicados
   if (integrantesEquipoActual.some(p => p.id === persona.id)) {
     alert('Esta persona ya está asignada al equipo.');
     return;
   }
 
-  // Añadir la persona elegida
   integrantesEquipoActual.push(persona);
 
-  // Auto-inclusión de pareja si es Responsable y es un matrimonio
+  // Regla especial: Matrimonio Responsable
   if (persona.rol === ROLES.RESPONSABLE && persona.esMatrimonio && persona.parejaId) {
     const pareja = integrantesComunidad.find(p => p.id === persona.parejaId);
     if (pareja && !integrantesEquipoActual.some(p => p.id === pareja.id)) {
@@ -126,18 +124,18 @@ function renderizarTablaEquipo() {
   tbody.innerHTML = '';
 
   if (integrantesEquipoActual.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">No hay integrantes añadidos.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400 italic font-normal">No hay integrantes añadidos.</td></tr>';
     return;
   }
 
   integrantesEquipoActual.forEach(p => {
     tbody.innerHTML += `
-      <tr class="hover:bg-slate-50 transition">
-        <td class="p-3 font-medium text-slate-800">${p.nombre}</td>
-        <td class="p-3"><span class="badge">${p.rol}</span></td>
-        <td class="p-3 text-right">
-          <button type="button" onclick="eliminarIntegrante(${p.id})" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-2.5 py-1 rounded transition">
-            Quitar
+      <tr class="bg-white hover:bg-slate-50/80 transition">
+        <td class="p-3.5 font-semibold text-slate-800">${p.nombre}</td>
+        <td class="p-3.5"><span class="badge badge-indigo">${p.rol}</span></td>
+        <td class="p-3.5 text-right">
+          <button type="button" onclick="eliminarIntegrante(${p.id})" class="inline-flex items-center gap-1 text-xs bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2.5 py-1.5 rounded-lg transition">
+            <i class="fa-solid fa-trash-can text-[10px]"></i> Quitar
           </button>
         </td>
       </tr>
@@ -145,7 +143,7 @@ function renderizarTablaEquipo() {
   });
 }
 
-// --- GUARDAR Y REGISTRAR EN EL HISTORIAL ---
+// --- GUARDAR Y PROCESAR HISTORIAL ---
 function guardarPreparacion(e) {
   e.preventDefault();
 
@@ -168,12 +166,13 @@ function guardarPreparacion(e) {
 
   historialPreparaciones.push(nuevaPrep);
 
-  // Limpieza de formulario y refresco de interfaces
+  // Reiniciar formulario
   integrantesEquipoActual = [];
   renderizarTablaEquipo();
   document.getElementById('input-detalle').value = '';
   actualizarNumeroEquipo();
   renderizarHistorial();
+  actualizarEstadisticas();
   
   alert('¡Preparación registrada con éxito!');
 }
@@ -183,25 +182,26 @@ function renderizarHistorial() {
   tbody.innerHTML = '';
 
   if (historialPreparaciones.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">El historial está vacío.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400 italic">El historial está vacío.</td></tr>';
     return;
   }
 
   historialPreparaciones.forEach(item => {
-    const nombresIntegrantes = item.integrantes.map(i => `${i.nombre} <span class="text-xs text-slate-500">(${i.rol})</span>`).join('<br>');
+    const nombresIntegrantes = item.integrantes.map(i => `<span class="font-medium text-slate-800">${i.nombre}</span> <span class="text-xs text-slate-400">(${i.rol})</span>`).join('<br>');
+    
     tbody.innerHTML += `
-      <tr class="hover:bg-slate-50 transition">
-        <td class="p-3 font-bold text-slate-700">${item.equipo}</td>
-        <td class="p-3"><span class="badge">${item.modalidad}</span></td>
-        <td class="p-3 text-slate-800">${item.detalle}</td>
-        <td class="p-3 leading-snug">${nombresIntegrantes}</td>
-        <td class="p-3 text-slate-500 text-xs">${item.fecha}</td>
+      <tr class="hover:bg-slate-50/80 transition">
+        <td class="p-4 font-bold text-indigo-600">${item.equipo}</td>
+        <td class="p-4"><span class="badge badge-slate">${item.modalidad}</span></td>
+        <td class="p-4 text-slate-700 font-medium">${item.detalle}</td>
+        <td class="p-4 leading-relaxed">${nombresIntegrantes}</td>
+        <td class="p-4 text-slate-400 text-xs">${item.fecha}</td>
       </tr>
     `;
   });
 }
 
-// --- CÁLCULO Y DILIGENCIAMIENTO DE ESTADÍSTICAS & INSIGHTS ---
+// --- CÁLCULO DE ESTADÍSTICAS & INSIGHTS ---
 function actualizarEstadisticas() {
   const total = historialPreparaciones.length;
   const temas = historialPreparaciones.filter(p => p.modalidad === 'Tema').length;
@@ -223,6 +223,6 @@ function actualizarEstadisticas() {
     if (palabras > maxCount) { masFrecuente = 'Palabras'; maxCount = palabras; }
     if (personajes > maxCount) { masFrecuente = 'Personajes'; maxCount = personajes; }
 
-    insightEl.innerHTML = `Hasta el momento, la comunidad se ha enfocado mayoritariamente en la preparación de <strong class="text-indigo-600">${masFrecuente}</strong> (${maxCount} registros).`;
+    insightEl.innerHTML = `Hasta el momento, la comunidad se ha enfocado mayoritariamente en la preparación de <strong class="text-indigo-600 font-bold">${masFrecuente}</strong> con un total de <strong>${maxCount}</strong> registro(s).`;
   }
 }
