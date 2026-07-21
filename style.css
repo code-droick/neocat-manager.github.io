@@ -30,6 +30,49 @@
   animation: fadeIn 0.2s ease-in-out;
 }
 
+/* --- ADICIONES CSS PARA NUEVAS PESTAÑAS Y FUNCIONALIDADES --- */
+
+.radio-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+.radio-group label {
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.badge {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  display: inline-block;
+}
+
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #e2e8f0);
+  text-align: center;
+}
+
+.stat-card .num {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: var(--accent, #2563eb);
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
