@@ -25,17 +25,34 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarSelectIntegrantes();
   actualizarNumeroEquipo();
   actualizarEstadisticas();
+  renderizarTablaEquipo();
+  renderizarHistorial();
 });
 
 // --- NAVEGACIÓN Y PESTAÑAS ---
 function cambiarPestana(tabId, event) {
   event.preventDefault();
   
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+  // Ocultar todas las pestañas
+  document.querySelectorAll('.tab-content').forEach(el => {
+    el.classList.add('hidden');
+  });
 
-  document.getElementById(tabId).classList.add('active');
-  event.target.classList.add('active');
+  // Quitar estilo activo de los enlaces
+  document.querySelectorAll('.nav-link').forEach(el => {
+    el.classList.remove('bg-indigo-600', 'text-white');
+    el.classList.add('text-slate-300');
+  });
+
+  // Mostrar la pestaña seleccionada
+  const targetSection = document.getElementById(tabId);
+  if (targetSection) {
+    targetSection.classList.remove('hidden');
+  }
+
+  // Marcar enlace como activo
+  event.currentTarget.classList.add('bg-indigo-600', 'text-white');
+  event.currentTarget.classList.remove('text-slate-300');
 
   if (tabId === 'estadisticas') {
     actualizarEstadisticas();
@@ -109,16 +126,20 @@ function renderizarTablaEquipo() {
   tbody.innerHTML = '';
 
   if (integrantesEquipoActual.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No hay integrantes añadidos.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">No hay integrantes añadidos.</td></tr>';
     return;
   }
 
   integrantesEquipoActual.forEach(p => {
     tbody.innerHTML += `
-      <tr>
-        <td>${p.nombre}</td>
-        <td><span class="badge">${p.rol}</span></td>
-        <td><button type="button" onclick="eliminarIntegrante(${p.id})" style="background:#ef4444; padding: 4px 8px; font-size:0.8rem;">Quitar</button></td>
+      <tr class="hover:bg-slate-50 transition">
+        <td class="p-3 font-medium text-slate-800">${p.nombre}</td>
+        <td class="p-3"><span class="badge">${p.rol}</span></td>
+        <td class="p-3 text-right">
+          <button type="button" onclick="eliminarIntegrante(${p.id})" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-2.5 py-1 rounded transition">
+            Quitar
+          </button>
+        </td>
       </tr>
     `;
   });
@@ -162,19 +183,19 @@ function renderizarHistorial() {
   tbody.innerHTML = '';
 
   if (historialPreparaciones.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">El historial está vacío.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">El historial está vacío.</td></tr>';
     return;
   }
 
   historialPreparaciones.forEach(item => {
-    const nombresIntegrantes = item.integrantes.map(i => `${i.nombre} (${i.rol})`).join('<br>');
+    const nombresIntegrantes = item.integrantes.map(i => `${i.nombre} <span class="text-xs text-slate-500">(${i.rol})</span>`).join('<br>');
     tbody.innerHTML += `
-      <tr>
-        <td><strong>${item.equipo}</strong></td>
-        <td><span class="badge">${item.modalidad}</span></td>
-        <td>${item.detalle}</td>
-        <td>${nombresIntegrantes}</td>
-        <td>${item.fecha}</td>
+      <tr class="hover:bg-slate-50 transition">
+        <td class="p-3 font-bold text-slate-700">${item.equipo}</td>
+        <td class="p-3"><span class="badge">${item.modalidad}</span></td>
+        <td class="p-3 text-slate-800">${item.detalle}</td>
+        <td class="p-3 leading-snug">${nombresIntegrantes}</td>
+        <td class="p-3 text-slate-500 text-xs">${item.fecha}</td>
       </tr>
     `;
   });
@@ -202,6 +223,6 @@ function actualizarEstadisticas() {
     if (palabras > maxCount) { masFrecuente = 'Palabras'; maxCount = palabras; }
     if (personajes > maxCount) { masFrecuente = 'Personajes'; maxCount = personajes; }
 
-    insightEl.innerHTML = `Hasta el momento, la comunidad se ha enfocado mayoritariamente en la preparación de <strong>${masFrecuente}</strong> (${maxCount} registros).`;
+    insightEl.innerHTML = `Hasta el momento, la comunidad se ha enfocado mayoritariamente en la preparación de <strong class="text-indigo-600">${masFrecuente}</strong> (${maxCount} registros).`;
   }
 }
