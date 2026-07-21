@@ -1,12 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestor Comunitaria</title>
-  <!-- Tailwind CSS CDN -->
+  <title>Gestor Comunitario Litúrgico</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     .modal-backdrop {
@@ -22,7 +20,7 @@
     <div>
       <div class="p-5 border-b border-slate-800 flex items-center gap-3">
         <div class="p-2 bg-indigo-600 text-white rounded-lg">
-          <i data-lucide="users" class="w-5 h-5"></i>
+          <i data-lucide="church" class="w-5 h-5"></i>
         </div>
         <div>
           <h1 class="font-bold text-white text-sm">Comunidad</h1>
@@ -36,7 +34,7 @@
       </nav>
     </div>
 
-    <!-- BOTONES RESPALDO JSON -->
+    <!-- RESPALDO JSON -->
     <div class="p-4 border-t border-slate-800 space-y-2">
       <p class="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1">Base de Datos</p>
       <button onclick="StorageService.exportJSON()" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition border border-slate-700/50">
@@ -52,50 +50,46 @@
   <!-- CONTENIDO PRINCIPAL -->
   <main class="flex-1 p-6 max-w-6xl mx-auto space-y-6">
 
-    <!-- BARRA SUPERIOR DE ACCIONES -->
+    <!-- HEADER Y ACCIONES -->
     <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-xl shadow-sm border border-slate-200/80">
       <div>
-        <h2 class="text-xl font-bold text-slate-900">Comunidad Litúrgica</h2>
-        <p class="text-xs text-slate-500">Administra los hermanos y la asignación de equipos de servicio.</p>
+        <h2 class="text-xl font-bold text-slate-900">Gestor Litúrgico Comunitario</h2>
+        <p class="text-xs text-slate-500">Preparación de Palabra/Tema/Personaje y división por Casas.</p>
       </div>
-      <div class="flex items-center gap-2 w-full sm:w-auto">
+      <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
         <button onclick="UI.openModalHermanos()" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition shadow-sm">
-          <i data-lucide="user-plus" class="w-4 h-4"></i> Gestionar Hermanos
+          <i data-lucide="user-plus" class="w-4 h-4"></i> Hermanos
         </button>
         <button onclick="UI.openModalGrupo()" class="flex-1 sm:flex-none bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition shadow-sm">
           <i data-lucide="users-round" class="w-4 h-4"></i> Crear Equipo
         </button>
+        <button onclick="UI.openModalCasas()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition shadow-sm">
+          <i data-lucide="home" class="w-4 h-4"></i> Dividir por Casas
+        </button>
       </div>
     </header>
 
-    <!-- RESUMEN DE ESTADÍSTICAS -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-4">
-        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
-          <i data-lucide="user-check" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <p class="text-xs font-medium text-slate-500">Total Hermanos</p>
-          <p id="stat-total-hermanos" class="text-2xl font-bold text-slate-900">0</p>
+    <!-- ANALYTICS / ESTADÍSTICAS (INCLUYENDO GÉNERO) -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+        <p class="text-xs font-medium text-slate-500">Total Comunidad</p>
+        <p id="stat-total" class="text-2xl font-bold text-slate-900">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+        <p class="text-xs font-medium text-slate-500">Hombres / Mujeres</p>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="text-sm font-bold text-blue-600" id="stat-hombres">0 ♂</span>
+          <span class="text-slate-300">|</span>
+          <span class="text-sm font-bold text-pink-600" id="stat-mujeres">0 ♀</span>
         </div>
       </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-4">
-        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-          <i data-lucide="shield-check" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <p class="text-xs font-medium text-slate-500">Asignados a Equipo</p>
-          <p id="stat-asignados" class="text-2xl font-bold text-slate-900">0</p>
-        </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+        <p class="text-xs font-medium text-slate-500">Matrimonios</p>
+        <p id="stat-matrimonios" class="text-2xl font-bold text-indigo-600">0</p>
       </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-4">
-        <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
-          <i data-lucide="user-x" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <p class="text-xs font-medium text-slate-500">Sin Equipo</p>
-          <p id="stat-disponibles" class="text-2xl font-bold text-slate-900">0</p>
-        </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+        <p class="text-xs font-medium text-slate-500">Sin Equipo</p>
+        <p id="stat-disponibles" class="text-2xl font-bold text-amber-600">0</p>
       </div>
     </section>
 
@@ -104,112 +98,129 @@
       <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">Equipos Configurados</h3>
       <div id="grid-grupos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
+
+    <!-- SECCIÓN DE CASAS CELEBRANDO (SI EXISTE) -->
+    <section id="sec-casas-resultado" class="hidden space-y-3 pt-4 border-t border-slate-200">
+      <div class="flex justify-between items-center">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-2">
+          <i data-lucide="home" class="w-4 h-4"></i> Distribución de Celebración por las Casas
+        </h3>
+        <button onclick="UI.limpiarCasas()" class="text-xs text-rose-600 hover:underline">Limpiar Casas</button>
+      </div>
+      <div id="grid-casas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
   </main>
 
   <!-- ==================== MODALES ==================== -->
-
-  <!-- MODAL CONTENEDOR GENERAL -->
   <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
-    
-    <!-- 1. MODAL REDISEÑADO: GESTIONAR Y AGREGAR HERMANOS -->
+
+    <!-- 1. MODAL REGISTRO DE HERMANOS CON SEXO Y MATRIMONIO -->
     <div id="modal-hermanos" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden hidden flex-col max-h-[90vh]">
-      <!-- Encabezado -->
       <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-        <div class="flex items-center gap-2.5">
-          <div class="p-1.5 bg-indigo-500/20 rounded-lg text-indigo-400">
-            <i data-lucide="user-plus" class="w-5 h-5"></i>
-          </div>
-          <h3 class="text-base font-bold">Gestión de Hermanos</h3>
-        </div>
-        <button onclick="UI.closeModals()" class="text-slate-400 hover:text-white transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+        <h3 class="text-base font-bold">Registro de Hermanos y Matrimonios</h3>
+        <button onclick="UI.closeModals()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
       <div class="p-6 overflow-y-auto space-y-6">
-        <!-- FORMULARIO DE REGISTRO -->
         <form id="form-hermano" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-          <p class="text-xs font-bold text-slate-700 uppercase tracking-wide">Registrar Nuevo Hermano</p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input type="text" id="nombre-hermano" placeholder="Nombre (ej. Juan)" required class="w-full text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <input type="text" id="apellido-hermano" placeholder="Apellido (ej. Pérez)" required class="w-full text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <p class="text-xs font-bold text-slate-700 uppercase">Nuevo Hermano/a</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <input type="text" id="nombre-hermano" placeholder="Nombre" required class="text-sm bg-white border border-slate-300 rounded-lg px-3 py-2">
+            <input type="text" id="apellido-hermano" placeholder="Apellido" required class="text-sm bg-white border border-slate-300 rounded-lg px-3 py-2">
+            <select id="sexo-hermano" required class="text-sm bg-white border border-slate-300 rounded-lg px-3 py-2">
+              <option value="">Sexo...</option>
+              <option value="H">Hombre ♂</option>
+              <option value="M">Mujer ♀</option>
+            </select>
           </div>
-          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition">
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Cónyuge / Esposo(a) (Opcional):</label>
+            <select id="pareja-hermano" class="w-full text-sm bg-white border border-slate-300 rounded-lg px-3 py-2">
+              <option value="">Soltero / Sin registrar cónyuge</option>
+            </select>
+          </div>
+
+          <button type="submit" class="w-full bg-indigo-600 text-white text-xs font-bold py-2.5 rounded-lg flex items-center justify-center gap-2">
             <i data-lucide="plus" class="w-4 h-4"></i> Guardar Hermano
           </button>
         </form>
 
-        <!-- LISTA Y BÚSQUEDA DE HERMANOS -->
         <div class="space-y-3">
-          <div class="flex justify-between items-center gap-2">
-            <p class="text-xs font-bold text-slate-700 uppercase tracking-wide">Lista de Hermanos (<span id="cnt-lista-hermanos">0</span>)</p>
-            <div class="relative w-48 sm:w-64">
-              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
-              <input type="text" id="search-hermano" placeholder="Buscar hermano..." oninput="UI.filterHermanos(this.value)" class="w-full text-xs pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            </div>
+          <div class="flex justify-between items-center">
+            <p class="text-xs font-bold text-slate-700 uppercase">Comunidad (<span id="cnt-lista-hermanos">0</span>)</p>
+            <input type="text" id="search-hermano" placeholder="Buscar..." oninput="UI.filterHermanos(this.value)" class="text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md">
           </div>
-
-          <div id="lista-hermanos-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+          <div id="lista-hermanos-container" class="space-y-2 max-h-52 overflow-y-auto"></div>
         </div>
       </div>
     </div>
 
-    <!-- 2. MODAL: CREAR EQUIPO (MANUAL / ALEATORIO) -->
+    <!-- 2. MODAL CREAR EQUIPO (RESPETA MATRIMONIOS) -->
     <div id="modal-grupo" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden hidden flex-col max-h-[90vh]">
       <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-        <h3 class="text-base font-bold">Crear Nuevo Equipo</h3>
-        <button onclick="UI.closeModals()" class="text-slate-400 hover:text-white transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+        <h3 class="text-base font-bold">Crear Equipo de Preparación</h3>
+        <button onclick="UI.closeModals()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
       <form id="form-grupo" class="p-6 space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Equipo</label>
-          <input type="text" id="nombre-grupo" placeholder="Ej: Equipo Litúrgico 1" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <input type="text" id="nombre-grupo" placeholder="Ej: Equipo 1 (Palabra / Tema / Personaje)" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2">
+        
+        <select id="tipo-grupo" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2">
+          <option value="preparacion">Preparación (Palabra / Tema / Personaje)</option>
+          <option value="convivencia">Convivencia / Logística</option>
+        </select>
+
+        <div class="flex justify-between items-center pt-2">
+          <label class="text-xs font-bold text-slate-700 uppercase">Selección de Integrantes</label>
+          <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+            <button type="button" id="tab-manual" onclick="UI.toggleModoEquipo('manual')" class="px-3 py-1 rounded bg-white text-indigo-600 shadow-sm">Manual</button>
+            <button type="button" id="tab-auto" onclick="UI.toggleModoEquipo('auto')" class="px-3 py-1 rounded text-slate-600">Aleatorio</button>
+          </div>
         </div>
 
+        <div id="sec-equipo-manual">
+          <p class="text-[11px] text-slate-500 mb-2">Nota: Al marcar a un hermano/a casado/a, su cónyuge se vinculará automáticamente.</p>
+          <div id="miembros-checkboxes" class="max-h-44 overflow-y-auto space-y-1 p-2 bg-slate-50 rounded-lg border border-slate-200"></div>
+        </div>
+
+        <div id="sec-equipo-auto" class="hidden space-y-3 bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
+          <p class="text-xs text-indigo-900">Selecciona cuántos <strong>hermanos/matrimonios</strong> sumar al azar entre los no asignados.</p>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs text-slate-600">Disponibles: <strong id="cant-disponibles" class="text-indigo-600">0</strong></span>
+            <input type="number" id="cant-aleatorios" min="1" placeholder="Cantidad aproximada" class="w-32 text-sm bg-white border border-slate-300 rounded-lg px-3 py-1.5">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="UI.closeModals()" class="px-4 py-2 text-xs font-medium text-slate-600">Cancelar</button>
+          <button type="submit" class="px-4 py-2 text-xs font-bold bg-indigo-600 text-white rounded-lg">Crear Equipo</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 3. MODAL CELEBRACIÓN POR LAS CASAS -->
+    <div id="modal-casas" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden hidden flex-col">
+      <div class="px-6 py-4 bg-emerald-800 text-white flex justify-between items-center">
+        <h3 class="text-base font-bold">Celebración por las Casas</h3>
+        <button onclick="UI.closeModals()" class="text-slate-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form id="form-casas" class="p-6 space-y-4">
+        <p class="text-xs text-slate-600">
+          Selecciona el equipo que preparó la celebración. Cada hermano del equipo asumirá la responsabilidad de una casa (aquí los esposos se dividen para liderar casas distintas) y el resto de la comunidad se repartirá equitativamente.
+        </p>
+
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo de Servicio</label>
-          <select id="tipo-grupo" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="">Seleccionar tipo...</option>
-            <option value="preparacion">Preparación Litúrgica</option>
-            <option value="limpieza">Limpieza / Logística</option>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Equipo Responsable:</label>
+          <select id="select-equipo-preparador" required class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2">
+            <option value="">Selecciona un equipo...</option>
           </select>
         </div>
 
-        <!-- MODO DE SELECCIÓN DE MIEMBROS -->
-        <div class="border-t border-slate-200 pt-3">
-          <div class="flex justify-between items-center mb-3">
-            <label class="text-xs font-bold text-slate-700 uppercase">Integrantes</label>
-            <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
-              <button type="button" id="tab-manual" onclick="UI.toggleModoEquipo('manual')" class="px-3 py-1 rounded-md bg-white shadow-sm text-indigo-600">Manual</button>
-              <button type="button" id="tab-auto" onclick="UI.toggleModoEquipo('auto')" class="px-3 py-1 rounded-md text-slate-600">Aleatorio</button>
-            </div>
-          </div>
-
-          <!-- SECCIÓN SELECCIÓN MANUAL -->
-          <div id="sec-equipo-manual">
-            <div id="miembros-checkboxes" class="max-h-44 overflow-y-auto space-y-1 p-2 bg-slate-50 rounded-lg border border-slate-200"></div>
-          </div>
-
-          <!-- SECCIÓN GENERACIÓN ALEATORIA -->
-          <div id="sec-equipo-auto" class="hidden space-y-3 bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
-            <p class="text-xs text-indigo-900 leading-relaxed">
-              El sistema seleccionará de forma <strong>completamente al azar</strong> entre los hermanos que no forman parte de ningún equipo actualmente.
-            </p>
-            <div class="flex items-center justify-between gap-4 pt-1">
-              <div class="text-xs text-slate-600">
-                Disponibles: <span id="cant-disponibles" class="font-bold text-indigo-600">0</span>
-              </div>
-              <input type="number" id="cant-aleatorios" min="1" placeholder="N° a seleccionar" class="w-36 text-sm bg-white border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-          <button type="button" onclick="UI.closeModals()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-          <button type="submit" class="px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition shadow-sm">Crear Equipo</button>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="UI.closeModals()" class="px-4 py-2 text-xs text-slate-600">Cancelar</button>
+          <button type="submit" class="px-4 py-2 text-xs font-bold bg-emerald-600 text-white rounded-lg">Generar Casas</button>
         </div>
       </form>
     </div>
